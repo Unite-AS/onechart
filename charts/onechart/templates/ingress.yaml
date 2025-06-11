@@ -27,10 +27,10 @@ metadata:
       {{- toYaml .ingress.annotations | nindent 4 }}
     {{- end }}
     {{- if .root.Values.gitSha }}
-    gimlet.io/git-sha: {{ .root.Values.gitSha }}
+    unite.as/git-sha: {{ .root.Values.gitSha }}
     {{- end }}
     {{- if .root.Values.gitRepository }}
-    gimlet.io/git-repository: {{ .root.Values.gitRepository }}
+    unite.as/git-repository: {{ .root.Values.gitRepository }}
     {{- end }}
   {{- end }}
 spec:

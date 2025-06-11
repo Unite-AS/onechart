@@ -36,11 +36,6 @@ jobs:
         echo $CHART_VERSION
         echo ::set-output name=cron_job_chart_version::$CHART_VERSION
 
-        CHART_VERSION=$(cat charts/static-site/Chart.yaml | grep ^version:)
-        CHART_VERSION=${CHART_VERSION#version: }
-        echo $CHART_VERSION
-        echo ::set-output name=static_site_chart_version::$CHART_VERSION
-
     - name: Ensure tag and chart version matches
       run: |
         echo "$TAG_VERSION"
@@ -84,12 +79,10 @@ jobs:
     - name: Publish to to GHCR
       run: |
         echo ${{ secrets.HELM_TOKEN }} | helm registry login ghcr.io --username ${{ github.actor }} --password-stdin
-        helm push docs/onechart-${CHART_VERSION}.tgz  oci://ghcr.io/gimlet-io
-        helm push docs/cron-job-${CHART_VERSION}.tgz  oci://ghcr.io/gimlet-io
-        helm push docs/static-site-${STATIC_SITE_CHART_VERSION}.tgz  oci://ghcr.io/gimlet-io
+        helm push docs/onechart-${CHART_VERSION}.tgz  oci://ghcr.io/unite-as
+        helm push docs/cron-job-${CHART_VERSION}.tgz  oci://ghcr.io/unite-as
       env:
         CHART_VERSION: ${{ steps.chart_version.outputs.chart_version }}
-        STATIC_SITE_CHART_VERSION: ${{ steps.chart_version.outputs.static_site_chart_version }}
     - name: Preparing the next release version
       run: |
         git config --global user.email "action@github.com"
@@ -105,7 +98,6 @@ jobs:
 
         sed -i "s/version: $CHART_VERSION/version: $increased_version/" charts/onechart/Chart.yaml
         sed -i "s/version: $CHART_VERSION/version: $increased_version/" charts/cron-job/Chart.yaml
-        sed -i "s/version: $CHART_VERSION/version: $increased_version/" charts/static-site/Chart.yaml
 
         git status
         git add .

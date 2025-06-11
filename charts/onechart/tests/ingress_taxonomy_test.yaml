@@ -2,7 +2,7 @@ suite: test service
 templates:
   - ingress.yaml
 tests:
-  - it: Should set Gimlet taxonomy on Ingress
+  - it: Should set Unite taxonomy on Ingress
     set:
       gitRepository: github.com/laszlocph/demo-app
       gitSha: xyz
@@ -13,6 +13,6 @@ tests:
       - equal:
           path: metadata.annotations
           value:
-            gimlet.io/git-repository: github.com/laszlocph/demo-app
-            gimlet.io/git-sha: xyz
+            unite.as/git-repository: github.com/laszlocph/demo-app
+            unite.as/git-sha: xyz
 

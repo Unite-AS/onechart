@@ -8,11 +8,11 @@ metadata:
   annotations:
     kubectl.kubernetes.io/default-container: {{ template "robustName" .Release.Name }}
     {{- if .Values.gitSha }}
-    gimlet.io/git-sha: {{ .Values.gitSha }}
+    unite.as/git-sha: {{ .Values.gitSha }}
     v1alpha1.opensca.dev/version.sha: {{ .Values.gitSha }}
     {{- end }}
     {{- if .Values.gitBranch }}
-    gimlet.io/git-branch: {{ .Values.gitBranch }}
+    unite.as/git-branch: {{ .Values.gitBranch }}
     v1alpha1.opensca.dev/version.branch: {{ .Values.gitBranch }}
     {{- end }}
 spec:
@@ -38,10 +38,10 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- if .Values.gitSha }}
-        gimlet.io/git-sha: {{ .Values.gitSha }}
+        unite.as/git-sha: {{ .Values.gitSha }}
         {{- end }}
         {{- if .Values.gitRepository }}
-        gimlet.io/git-repository: {{ .Values.gitRepository }}
+        unite.as/git-repository: {{ .Values.gitRepository }}
         {{- end }}
       labels:
         {{- with .Values.podLabels }}

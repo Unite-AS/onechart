@@ -8,17 +8,17 @@ metadata:
   {{- if or (or (or (or (or (or .Values.gitRepository .Values.gitSha) .Values.serviceName) .Values.serviceDescription) .Values.ownerName) .Values.ownerIm) .Values.serviceAnnotations }}
   annotations:
     {{- if .Values.gitRepository }}
-    gimlet.io/git-repository: {{ .Values.gitRepository }}
+    unite.as/git-repository: {{ .Values.gitRepository }}
     {{- $parts := split "/" .Values.gitRepository }}
     v1alpha1.opensca.dev/vcs.owner: {{ $parts._0 }}
     v1alpha1.opensca.dev/vcs.name: {{ $parts._1 }}
     {{- end }}
     {{- if .Values.gitSha }}
-    gimlet.io/git-sha: {{ .Values.gitSha }}
+    unite.as/git-sha: {{ .Values.gitSha }}
     v1alpha1.opensca.dev/version.sha: {{ .Values.gitSha }}
     {{- end }}
     {{- if .Values.gitBranch }}
-    gimlet.io/git-branch: {{ .Values.gitBranch }}
+    unite.as/git-branch: {{ .Values.gitBranch }}
     v1alpha1.opensca.dev/version.branch: {{ .Values.gitBranch }}
     {{- end }}
     {{- if .Values.serviceName }}
