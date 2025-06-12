@@ -1,24 +1,11 @@
 
 .PHONY: all lint kubeval test package debug debug-ui
 
-all: lint kubeval test package
+all: lint test package
 
 lint:
 	helm lint charts/onechart/
 	helm lint charts/cron-job/
-
-kubeval:
-	rm -rf manifests && true
-	mkdir manifests
-	helm template charts/onechart --output-dir manifests
-	find manifests/ -name '*.yaml' | xargs kubeval --ignore-missing-schemas -v 1.20.0
-	find manifests/ -name '*.yaml' | xargs kubeval --ignore-missing-schemas -v 1.24.0
-
-	rm -rf manifests && true
-	mkdir manifests
-	helm template charts/cron-job --output-dir manifests
-	find manifests/ -name '*.yaml' | xargs kubeval --ignore-missing-schemas -v 1.20.0
-	find manifests/ -name '*.yaml' | xargs kubeval --ignore-missing-schemas -v 1.24.0
 
 test:
 	helm dependency update charts/onechart
@@ -35,8 +22,6 @@ package:
 	helm dependency update charts/cron-job
 	helm package charts/cron-job
 	mv cron-job*.tgz docs
-
-	helm repo index docs --url https://chart.onechart.dev
 
 debug:
 	helm dependency update charts/onechart

@@ -61,8 +61,6 @@ helm install my-release oci://ghcr.io/unite-as/onechart --version 0.62.0 \
   --set image.tag=1.19.3
 ```
 
-See all [Examples](/website/docs/examples/)
-
 ## Contribution Guidelines
 
 Below are some guidelines and best practices for contributing to this repository:
