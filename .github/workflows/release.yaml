@@ -124,3 +124,4 @@ jobs:
         git push origin master
       env:
         CHART_VERSION: ${{ steps.chart_version.outputs.chart_version }}
+        GH_TOKEN: ${{ github.token }}
