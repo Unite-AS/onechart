@@ -49,6 +49,7 @@ spec:
         {{- end }}
         {{- include "helm-chart.selectorLabels" . | nindent 8 }}
     spec:
+      automountServiceAccountToken: false
       {{- $podSpecTpl := include "common.podSpec.tpl" . | fromYaml }}
       {{- $podSpec := mergeOverwrite $podSpecTpl .Values.podSpec }}
       {{- toYaml $podSpec | nindent 6 }}

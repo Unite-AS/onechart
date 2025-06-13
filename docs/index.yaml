@@ -2,13 +2,13 @@ apiVersion: v1
 entries:
   cron-job:
   - apiVersion: v2
-    created: "2025-06-12T13:55:27.966042+02:00"
+    created: "2025-06-13T11:33:27.579175+02:00"
     dependencies:
     - name: common
       repository: file://../common
       version: 1.0.0
     description: A generic Helm chart for your application deployments.
-    digest: 43826d93a25d5f82abbfc8b36f5d05caada428b79688a2f2f3457fd27e0a3ca8
+    digest: ffbe32ed00708106d0402db94bbd40b97bb43c369cbaa842e65af9909e02cd65
     name: cron-job
     type: application
     urls:
@@ -16,16 +16,29 @@ entries:
     version: 0.9.0
   onechart:
   - apiVersion: v2
-    created: "2025-06-12T13:55:27.967279+02:00"
+    created: "2025-06-13T11:33:27.580824+02:00"
     dependencies:
     - name: common
       repository: file://../common
       version: 1.0.0
     description: A generic Helm chart for your application deployments.
-    digest: e4ef742aeea4b8e0722d33e7dd603058d806abd73325001d911a9f4c9ff88c14
+    digest: e89186be1b4bf67128731108910ff0dc11d76ba7b94cef8f4f6c5a2405411424
+    name: onechart
+    type: application
+    urls:
+    - onechart-0.9.1.tgz
+    version: 0.9.1
+  - apiVersion: v2
+    created: "2025-06-13T11:33:27.580302+02:00"
+    dependencies:
+    - name: common
+      repository: file://../common
+      version: 1.0.0
+    description: A generic Helm chart for your application deployments.
+    digest: c4384de9ac3a479642921858ee316bf0ac242278984d6611dbac13aac92234c2
     name: onechart
     type: application
     urls:
     - onechart-0.9.0.tgz
     version: 0.9.0
-generated: "2025-06-12T13:55:27.965564+02:00"
+generated: "2025-06-13T11:33:27.578705+02:00"
