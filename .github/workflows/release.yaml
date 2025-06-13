@@ -84,8 +84,21 @@ jobs:
     - name: Publish to to GHCR
       run: |
         echo ${{ secrets.UNITE_TECH_BOT_PAT }} | helm registry login ghcr.io --username unite-tech-bot --password-stdin
-        helm push docs/onechart-${CHART_VERSION}.tgz  oci://ghcr.io/unite-as
-        helm push docs/cron-job-${CHART_VERSION}.tgz  oci://ghcr.io/unite-as
+        # Push onechart package with error handling
+        if helm push docs/onechart-${CHART_VERSION}.tgz oci://ghcr.io/unite-as; then
+          echo "Successfully pushed onechart to GHCR"
+        else
+          echo "Failed to push onechart to GHCR"
+          exit 1
+        fi
+        
+        # Push cron-job package with error handling
+        if helm push docs/cron-job-${CHART_VERSION}.tgz oci://ghcr.io/unite-as; then
+          echo "Successfully pushed cron-job to GHCR"
+        else
+          echo "Failed to push cron-job to GHCR"
+          exit 1
+        fi
       env:
         CHART_VERSION: ${{ steps.chart_version.outputs.chart_version }}
 
