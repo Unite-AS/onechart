@@ -79,6 +79,7 @@ jobs:
       env:
         TAG_VERSION: ${{ steps.versioning.outputs.tag_version }}
         title: Release ${{ github.ref }}
+        GH_TOKEN: ${{ github.token }}
 
     - name: Publish to to GHCR
       run: |
