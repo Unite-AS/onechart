@@ -83,7 +83,7 @@ jobs:
 
     - name: Publish to to GHCR
       run: |
-        echo ${{ secrets.UNITE_TECH_BOT_PAT }} | helm registry login ghcr.io --username unite-tech-bot --password-stdin
+        echo ${{ secrets.GH_PACKAGE_TOKEN }} | helm registry login ghcr.io --username unite-tech-bot --password-stdin
         helm push docs/onechart-${CHART_VERSION}.tgz  oci://ghcr.io/unite-as
         helm push docs/cron-job-${CHART_VERSION}.tgz  oci://ghcr.io/unite-as
       env:
