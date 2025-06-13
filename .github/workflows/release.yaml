@@ -83,11 +83,12 @@ jobs:
 
     - name: Publish to to GHCR
       run: |
-        echo ${{ secrets.GH_PACKAGE_TOKEN }} | helm registry login ghcr.io --username ${{ github.actor }} --password-stdin
+        echo ${{ secrets.DEPLOY_BOT_TOKEN }} | helm registry login ghcr.io --username unite-tech-bot --password-stdin
         helm push docs/onechart-${CHART_VERSION}.tgz  oci://ghcr.io/unite-as
         helm push docs/cron-job-${CHART_VERSION}.tgz  oci://ghcr.io/unite-as
       env:
         CHART_VERSION: ${{ steps.chart_version.outputs.chart_version }}
+
     - name: Preparing the next release version
       run: |
         git config --global user.name "$(gh api user --jq '.login')"
