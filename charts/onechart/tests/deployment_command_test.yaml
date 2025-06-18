@@ -34,3 +34,19 @@ tests:
         equal:
           path: spec.template.spec.containers[0].securityContext.runAsUser
           value: 621
+  - it: Should merge the security contexts with defaults
+    set:
+      securityContext:
+        runAsNonRoot: false
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: false
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 621
+
