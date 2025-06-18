@@ -1,7 +1,13 @@
 {{- define "common.container.tpl" -}}
 name: {{ template "robustName" .Release.Name }}
+{{- if .Values.securityContext }}
 securityContext:
   {{- toYaml .Values.securityContext | nindent 2 }}
+{{- else }}
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 621
+{{- end }}
 image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
 imagePullPolicy: {{ .Values.image.pullPolicy }}
 {{- if .Values.command }}

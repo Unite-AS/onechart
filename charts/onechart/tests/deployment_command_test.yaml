@@ -22,3 +22,15 @@ tests:
         equal:
           path: spec.template.spec.containers[0].command
           value: ['/bin/ash', '-c','while true; do date; sleep 2; done']
+  - it: Should set the security context for defaults
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 621

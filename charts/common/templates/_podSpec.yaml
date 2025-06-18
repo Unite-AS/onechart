@@ -5,8 +5,14 @@ imagePullSecrets:
   - name: {{ . }}
   {{- end }}
 {{- end }}
+{{- if .Values.podSecurityContext }}
 securityContext:
   {{- toYaml .Values.podSecurityContext | nindent 2 }}
+{{- else }}
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 621
+{{- end }}
 {{- if .Values.serviceAccount }}
 serviceAccountName: {{ .Values.serviceAccount }}
 {{- end }}
@@ -32,6 +38,10 @@ initContainers:
     {{- if .securityContext }}
     securityContext:
     {{- toYaml .securityContext | nindent 6 }}
+    {{- else }}
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 621
     {{- end}}
   {{- end }}      
 containers:
