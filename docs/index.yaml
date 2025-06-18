@@ -2,20 +2,33 @@ apiVersion: v1
 entries:
   cron-job:
   - apiVersion: v2
-    created: "2025-06-18T10:38:25.777238+02:00"
+    created: "2025-06-18T11:49:00.249778+02:00"
     dependencies:
     - name: common
       repository: file://../common
       version: 1.0.1
     description: A generic Helm chart for your application deployments.
-    digest: 1891ba65b541ac7e0fd410a20fb2db3b12983de77e7e1f33b7e5b766a1d62f50
+    digest: 62f580bfdf3fbcd8317f7c229abf14ac7539c6b9b75279ad1c8d1f4ae7d5363a
+    name: cron-job
+    type: application
+    urls:
+    - cron-job-0.11.0.tgz
+    version: 0.11.0
+  - apiVersion: v2
+    created: "2025-06-18T11:49:00.249375+02:00"
+    dependencies:
+    - name: common
+      repository: file://../common
+      version: 1.0.1
+    description: A generic Helm chart for your application deployments.
+    digest: 682478b89b9caddec37750379bc257645f1caee97929a6ce39482127440a7485
     name: cron-job
     type: application
     urls:
     - cron-job-0.10.0.tgz
     version: 0.10.0
   - apiVersion: v2
-    created: "2025-06-18T10:38:25.778427+02:00"
+    created: "2025-06-18T11:49:00.252108+02:00"
     dependencies:
     - name: common
       repository: file://../common
@@ -28,7 +41,7 @@ entries:
     - cron-job-0.9.1.tgz
     version: 0.9.1
   - apiVersion: v2
-    created: "2025-06-18T10:38:25.777868+02:00"
+    created: "2025-06-18T11:49:00.251594+02:00"
     dependencies:
     - name: common
       repository: file://../common
@@ -42,20 +55,33 @@ entries:
     version: 0.9.0
   onechart:
   - apiVersion: v2
-    created: "2025-06-18T10:38:25.781255+02:00"
+    created: "2025-06-18T11:49:00.253147+02:00"
     dependencies:
     - name: common
       repository: file://../common
       version: 1.0.1
     description: A generic Helm chart for your application deployments.
-    digest: 50aa5d09a25a000cd30e7a161f896d0996149976a1f1c1042aef7853bbc04b45
+    digest: a37914176f72a7313c85b510bdfcfc0e40eda5fdc03d6bfb80bf177f2f8a46dd
+    name: onechart
+    type: application
+    urls:
+    - onechart-0.11.0.tgz
+    version: 0.11.0
+  - apiVersion: v2
+    created: "2025-06-18T11:49:00.252638+02:00"
+    dependencies:
+    - name: common
+      repository: file://../common
+      version: 1.0.1
+    description: A generic Helm chart for your application deployments.
+    digest: efd8e191e7eb4423ce880646baa8fc54cf1cd325d6de6c82dac7220480bf5bdc
     name: onechart
     type: application
     urls:
     - onechart-0.10.0.tgz
     version: 0.10.0
   - apiVersion: v2
-    created: "2025-06-18T10:38:25.782606+02:00"
+    created: "2025-06-18T11:49:00.254295+02:00"
     dependencies:
     - name: common
       repository: file://../common
@@ -68,7 +94,7 @@ entries:
     - onechart-0.9.1.tgz
     version: 0.9.1
   - apiVersion: v2
-    created: "2025-06-18T10:38:25.78196+02:00"
+    created: "2025-06-18T11:49:00.253769+02:00"
     dependencies:
     - name: common
       repository: file://../common
@@ -80,4 +106,4 @@ entries:
     urls:
     - onechart-0.9.0.tgz
     version: 0.9.0
-generated: "2025-06-18T10:38:25.776148+02:00"
+generated: "2025-06-18T11:49:00.248694+02:00"

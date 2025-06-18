@@ -2,11 +2,19 @@
 name: {{ template "robustName" .Release.Name }}
 {{- if .Values.securityContext }}
 securityContext:
-  {{- toYaml .Values.securityContext | nindent 2 }}
+  runAsNonRoot: {{ hasKey .Values.securityContext "runAsNonRoot" | ternary .Values.securityContext.runAsNonRoot true }}
+  runAsUser: {{ hasKey .Values.securityContext "runAsUser" | ternary .Values.securityContext.runAsUser 621 }}
+  readOnlyRootFilesystem: {{ hasKey .Values.securityContext "readOnlyRootFilesystem" | ternary .Values.securityContext.readOnlyRootFilesystem true }}
+  {{- range $key, $value := .Values.securityContext }}
+  {{- if not (or (eq $key "runAsNonRoot") (eq $key "runAsUser") (eq $key "readOnlyRootFilesystem")) }}
+  {{ $key }}: {{ $value }}
+  {{- end }}
+  {{- end }}
 {{- else }}
 securityContext:
   runAsNonRoot: true
   runAsUser: 621
+  readOnlyRootFilesystem: true
 {{- end }}
 image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
 imagePullPolicy: {{ .Values.image.pullPolicy }}
