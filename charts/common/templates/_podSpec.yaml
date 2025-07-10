@@ -1,7 +1,7 @@
 {{- define "common.podSpec.tpl" -}}
 {{- with .Values.imagePullSecrets }}
 imagePullSecrets:
-  {{- range . }}  
+  {{- range . }}
   - name: {{ . }}
   {{- end }}
 {{- end }}
@@ -23,19 +23,22 @@ securityContext:
 serviceAccountName: {{ .Values.serviceAccount }}
 {{- end }}
 initContainers:
-  {{- range .Values.initContainers }}  
+  {{- range .Values.initContainers }}
   - name:  {{ .name }}
     image: "{{ .image }}:{{ .tag }}"
     imagePullPolicy: {{ .imagePullPolicy | default "IfNotPresent" }}
+    {{- if .restartPolicy }}
+    restartPolicy: {{ .restartPolicy }}
+    {{- end }}
     {{- include "common.envFromRef.tpl" $ | nindent 4 }}
     {{- if .command }}
     command:
       - {{ $.Values.shell }}
       - -c
-      - {{ .command | quote}} 
+      - {{ .command | quote}}
     {{- end }}
     volumeMounts:
-    {{- range $.Values.volumes }}  
+    {{- range $.Values.volumes }}
     {{- if (or (hasPrefix "shared-" .name) (hasPrefix "init-" .name))}}
     - mountPath: {{ .path }}
       name: {{ .name }}
@@ -49,7 +52,11 @@ initContainers:
       runAsNonRoot: true
       runAsUser: 621
     {{- end}}
-  {{- end }}      
+    {{- if .resources }}
+    resources:
+    {{- toYaml .resources | nindent 6 }}
+    {{- end }}
+  {{- end }}
 containers:
   {{- $containerTpl := include "common.container.tpl" . | fromYaml }}
   {{- $container := mergeOverwrite $containerTpl .Values.container }}
