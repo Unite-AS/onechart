@@ -12,13 +12,13 @@ OneChart is a generic Helm Chart for web applications. The idea is that most Kub
 Add the Onechart Helm repository:
 
 ```bash
-helm repo add onechart https://chart.onechart.dev
+helm repo add onechart helm repo add onechart https://unite-as.github.io/onechart/
 ```
 
 Set your image name and version, the boilerplate is generated.
 
 ```bash
-helm template my-release onechart/onechart \
+helm template my-release Unite-AS/onechart \
   --set image.repository=nginx \
   --set image.tag=1.19.3
 ```
@@ -26,8 +26,8 @@ helm template my-release onechart/onechart \
 The example below deploys your application image, sets environment variables and configures the Kubernetes Ingress domain name:
 
 ```bash
-helm repo add onechart https://chart.onechart.dev
-helm template my-release onechart/onechart -f values.yaml
+helm repo add onechart [https://chart.onechart.dev](https://unite-as.github.io/onechart/)
+helm template my-release Unite-AS/onechart -f values.yaml
 
 # values.yaml
 image:
