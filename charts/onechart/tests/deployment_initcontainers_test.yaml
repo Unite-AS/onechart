@@ -3,7 +3,7 @@ templates:
   - deployment.yaml
   - configmap.yaml
 tests:
-  - it: Should set name, image and tag  
+  - it: Should set name, image and tag
     set:
       initContainers:
         - name: pod1
@@ -20,7 +20,7 @@ tests:
         equal:
           path: spec.template.spec.initContainers[0].image
           value: "nginx:1.2.2"
-  - it: Should set command  
+  - it: Should set command
     set:
       initContainers:
         - name: pod1
@@ -34,7 +34,7 @@ tests:
         documentIndex: 0
         equal:
           path: spec.template.spec.initContainers[0].command
-          value: ['/bin/sh', '-c', 'while true; do date; sleep 2; done && ls /data && printf something']
+          value: [ '/bin/sh', '-c', 'while true; do date; sleep 2; done && ls /data && printf something' ]
 
   - it: Should set security context
     set:
@@ -67,3 +67,63 @@ tests:
         equal:
           path: spec.template.spec.initContainers[0].securityContext.runAsUser
           value: 621
+  - it: should keep restartPolicy as Always
+    set:
+      initContainers:
+        - name: native-sidecar
+          image: debian
+          tag: stable-slim
+          restartPolicy: Always
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.initContainers[0].restartPolicy
+          value: Always
+  - it: should not set restartPolicy if not specified
+    set:
+      initContainers:
+        - name: native-sidecar
+          image: debian
+          tag: stable-slim
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        isNull:
+          path: spec.template.spec.initContainers[0].restartPolicy
+  - it: should keep resources if present
+    set:
+      initContainers:
+        - name: native-sidecar
+          image: debian
+          tag: stable-slim
+          resources:
+            requests:
+              cpu: "1000m"
+              memory: "200Mi"
+            limits:
+              cpu: "2000m"
+              memory: "400Mi"
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.initContainers[0].resources
+          value:
+            requests:
+              cpu: "1000m"
+              memory: "200Mi"
+            limits:
+              cpu: "2000m"
+              memory: "400Mi"
+  - it: should not set resources if not specified
+    set:
+      initContainers:
+        - name: native-sidecar
+          image: debian
+          tag: stable-slim
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        isNull:
+          path: spec.template.spec.initContainers[0].resources
