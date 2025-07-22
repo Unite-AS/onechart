@@ -12,7 +12,7 @@ OneChart is a generic Helm Chart for web applications. The idea is that most Kub
 Add the Onechart Helm repository:
 
 ```bash
-helm repo add onechart helm repo add onechart https://unite-as.github.io/onechart/
+helm repo add onechart https://unite-as.github.io/onechart/
 ```
 
 Set your image name and version, the boilerplate is generated.
@@ -26,7 +26,7 @@ helm template my-release Unite-AS/onechart \
 The example below deploys your application image, sets environment variables and configures the Kubernetes Ingress domain name:
 
 ```bash
-helm repo add onechart [https://chart.onechart.dev](https://unite-as.github.io/onechart/)
+helm repo add onechart https://unite-as.github.io/onechart/
 helm template my-release Unite-AS/onechart -f values.yaml
 
 # values.yaml
@@ -48,7 +48,7 @@ You can also template and install onechart from an OCI repository as follows:
 Check the generated Kubernetes yaml:
 
 ```bash
-helm template my-release oci://ghcr.io/unite-as/onechart --version 0.62.0 \
+helm template my-release oci://ghcr.io/unite-as/onechart/onechart --version 0.62.0 \
   --set image.repository=nginx \
   --set image.tag=1.19.3
 ```
@@ -56,7 +56,7 @@ helm template my-release oci://ghcr.io/unite-as/onechart --version 0.62.0 \
 Deploy with Helm:
 
 ```bash
-helm install my-release oci://ghcr.io/unite-as/onechart --version 0.62.0 \
+helm install my-release oci://ghcr.io/unite-as/onechart/onechart --version 0.62.0 \
   --set image.repository=nginx \
   --set image.tag=1.19.3
 ```
@@ -92,10 +92,53 @@ The tests are located under `charts/onechart/test` and use the https://github.co
 
 For installation, refer to the CI workflow at `.github/workflows/build.yaml`.
 
-## Release process
+## Build and Release Process
 
-`make all` to test and package the Helm chart.
-The chart archives are put under `docs/` together with the Helm repository manifest (index.yaml)
-It is then served with Github Pages on https://chart.onechart.dev
+### Building and Testing Locally
 
-Github Actions is used to automate the make calls on git tag events.
+1. **Lint the charts**:
+   ```bash
+   make lint
+   ```
+
+2. **Run tests**:
+   ```bash
+   make test
+   ```
+
+3. **Package the charts**:
+   ```bash
+   make package
+   ```
+
+or
+
+**Run all steps at once**:
+   ```bash
+   make all
+   ```
+
+The `make all` command will lint, test, and package the Helm charts. The packaged chart archives (`.tgz` files) are placed in the `docs/` directory.
+
+### Updating the Helm Repository Index
+
+After packaging new chart versions, you need to update the Helm repository index:
+
+```bash
+helm repo index docs --url https://unite-as.github.io/onechart/
+```
+
+This command generates or updates the `index.yaml` file in the `docs/` directory, which is the Helm repository manifest that lists all available charts and their versions.
+
+### Release Process
+
+1. Update the chart version in the respective `Chart.yaml` file
+2. Run `make all` to test and package the updated chart
+3. Update the Helm repository index as described above
+4. Commit and push your changes
+5. Create a git tag for the new version
+6. Push the tag to trigger the GitHub Actions workflow
+
+The chart archives in the `docs/` directory, along with the updated `index.yaml`, are served via GitHub Pages at https://unite-as.github.io/onechart/.
+
+GitHub Actions is configured to automate these steps on git tag events, making the release process smoother.
