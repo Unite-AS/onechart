@@ -1,0 +1,52 @@
+suite: test deployment
+templates:
+  - deployment.yaml
+  - configmap.yaml
+tests:
+  - it: Should set default pod security context
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.securityContext.runAsNonRoot
+          value: true
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 621
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.securityContext.allowPrivilegeEscalation
+          value: false
+  - it: Should merge pod security context with defaults
+    set:
+      podSecurityContext:
+        runAsNonRoot: false
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.securityContext.runAsNonRoot
+          value: false
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 621
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.securityContext.allowPrivilegeEscalation
+          value: false
+  - it: Should allow overriding allowPrivilegeEscalation in pod security context
+    set:
+      podSecurityContext:
+        allowPrivilegeEscalation: true
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.securityContext.allowPrivilegeEscalation
+          value: true

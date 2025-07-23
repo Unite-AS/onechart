@@ -9,8 +9,9 @@ imagePullSecrets:
 securityContext:
   runAsNonRoot: {{ hasKey .Values.podSecurityContext "runAsNonRoot" | ternary .Values.podSecurityContext.runAsNonRoot true }}
   runAsUser: {{ hasKey .Values.podSecurityContext "runAsUser" | ternary .Values.podSecurityContext.runAsUser 621 }}
+  allowPrivilegeEscalation: {{ hasKey .Values.podSecurityContext "allowPrivilegeEscalation" | ternary .Values.podSecurityContext.allowPrivilegeEscalation false }}
   {{- range $key, $value := .Values.podSecurityContext }}
-  {{- if not (or (eq $key "runAsNonRoot") (eq $key "runAsUser")) }}
+  {{- if not (or (eq $key "runAsNonRoot") (eq $key "runAsUser") (eq $key "allowPrivilegeEscalation")) }}
   {{ $key }}: {{ $value }}
   {{- end }}
   {{- end }}
@@ -18,6 +19,7 @@ securityContext:
 securityContext:
   runAsNonRoot: true
   runAsUser: 621
+  allowPrivilegeEscalation: false
 {{- end }}
 {{- if .Values.serviceAccount }}
 serviceAccountName: {{ .Values.serviceAccount }}
@@ -51,6 +53,7 @@ initContainers:
     securityContext:
       runAsNonRoot: true
       runAsUser: 621
+      allowPrivilegeEscalation: false
     {{- end}}
     {{- if .resources }}
     resources:
@@ -65,8 +68,22 @@ containers:
     {{- include "common.volumeMountsRef.tpl" . | nindent 4 }}
   {{- if .Values.sidecar }}
   - name: {{ template "robustName" .Release.Name }}-sidecar
+    {{- if .Values.securityContext }}
     securityContext:
-      {{- toYaml .Values.securityContext | nindent 6 }}
+      runAsNonRoot: {{ hasKey .Values.securityContext "runAsNonRoot" | ternary .Values.securityContext.runAsNonRoot true }}
+      runAsUser: {{ hasKey .Values.securityContext "runAsUser" | ternary .Values.securityContext.runAsUser 621 }}
+      allowPrivilegeEscalation: {{ hasKey .Values.securityContext "allowPrivilegeEscalation" | ternary .Values.securityContext.allowPrivilegeEscalation false }}
+      {{- range $key, $value := .Values.securityContext }}
+      {{- if not (or (eq $key "runAsNonRoot") (eq $key "runAsUser") (eq $key "allowPrivilegeEscalation")) }}
+      {{ $key }}: {{ $value }}
+      {{- end }}
+      {{- end }}
+    {{- else }}
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 621
+      allowPrivilegeEscalation: false
+    {{- end }}
     image: {{ .Values.sidecar.repository }}:{{ .Values.sidecar.tag }}
     {{- if .Values.sidecar.command }}
     command:

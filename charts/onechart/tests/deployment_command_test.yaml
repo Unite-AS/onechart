@@ -34,6 +34,11 @@ tests:
         equal:
           path: spec.template.spec.containers[0].securityContext.runAsUser
           value: 621
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: false
   - it: Should merge the security contexts with defaults
     set:
       securityContext:
@@ -49,4 +54,18 @@ tests:
         equal:
           path: spec.template.spec.containers[0].securityContext.runAsUser
           value: 621
-
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: false
+  - it: Should allow overriding allowPrivilegeEscalation
+    set:
+      securityContext:
+        allowPrivilegeEscalation: true
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: true

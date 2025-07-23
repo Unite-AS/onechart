@@ -27,3 +27,37 @@ tests:
         equal:
           path: spec.template.spec.containers[1].image
           value: debian:stable-slim
+  - it: Should set default security context for sidecar container
+    set:
+      sidecar:
+        repository: debian
+        tag: stable-slim
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[1].securityContext.runAsNonRoot
+          value: true
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[1].securityContext.runAsUser
+          value: 621
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[1].securityContext.allowPrivilegeEscalation
+          value: false
+  - it: Should allow overriding allowPrivilegeEscalation for sidecar container
+    set:
+      sidecar:
+        repository: debian
+        tag: stable-slim
+      securityContext:
+        allowPrivilegeEscalation: true
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[1].securityContext.allowPrivilegeEscalation
+          value: true
