@@ -5,8 +5,9 @@ securityContext:
   runAsNonRoot: {{ hasKey .Values.securityContext "runAsNonRoot" | ternary .Values.securityContext.runAsNonRoot true }}
   runAsUser: {{ hasKey .Values.securityContext "runAsUser" | ternary .Values.securityContext.runAsUser 621 }}
   readOnlyRootFilesystem: {{ hasKey .Values.securityContext "readOnlyRootFilesystem" | ternary .Values.securityContext.readOnlyRootFilesystem true }}
+  allowPrivilegeEscalation: {{ hasKey .Values.securityContext "allowPrivilegeEscalation" | ternary .Values.securityContext.allowPrivilegeEscalation false }}
   {{- range $key, $value := .Values.securityContext }}
-  {{- if not (or (eq $key "runAsNonRoot") (eq $key "runAsUser") (eq $key "readOnlyRootFilesystem")) }}
+  {{- if not (or (eq $key "runAsNonRoot") (eq $key "runAsUser") (eq $key "readOnlyRootFilesystem") (eq $key "allowPrivilegeEscalation")) }}
   {{ $key }}: {{ $value }}
   {{- end }}
   {{- end }}
@@ -15,6 +16,7 @@ securityContext:
   runAsNonRoot: true
   runAsUser: 621
   readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
 {{- end }}
 image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
 imagePullPolicy: {{ .Values.image.pullPolicy }}

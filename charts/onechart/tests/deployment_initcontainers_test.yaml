@@ -67,6 +67,11 @@ tests:
         equal:
           path: spec.template.spec.initContainers[0].securityContext.runAsUser
           value: 621
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.initContainers[0].securityContext.allowPrivilegeEscalation
+          value: false
   - it: should keep restartPolicy as Always
     set:
       initContainers:
@@ -127,3 +132,17 @@ tests:
         documentIndex: 0
         isNull:
           path: spec.template.spec.initContainers[0].resources
+  - it: Should allow overriding allowPrivilegeEscalation for init containers
+    set:
+      initContainers:
+        - name: pod1
+          image: nginx
+          tag: 1.2.2
+          securityContext:
+            allowPrivilegeEscalation: true
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.initContainers[0].securityContext.allowPrivilegeEscalation
+          value: true

@@ -125,7 +125,7 @@ The `make all` command will lint, test, and package the Helm charts. The package
 After packaging new chart versions, you need to update the Helm repository index:
 
 ```bash
-helm repo index docs --url https://unite-as.github.io/onechart/
+helm repo index docs
 ```
 
 This command generates or updates the `index.yaml` file in the `docs/` directory, which is the Helm repository manifest that lists all available charts and their versions.
