@@ -58,6 +58,16 @@ livenessProbe:
   {{- toYaml . | nindent 2 }}
   {{- end }}
 {{- end }}
+{{- if .Values.startupProbe.enabled }}
+startupProbe:
+  httpGet:
+    path: {{ .Values.startupProbe.path }}
+    port: {{ .Values.containerPort }}
+    scheme: HTTP
+  {{- with .Values.startupProbe.settings }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+{{- end }}
 {{- if not .Values.resources.ignore }}
 resources:
   {{- if .Values.resources.ignoreLimits }}
