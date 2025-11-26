@@ -13,6 +13,9 @@ tests:
       - equal:
           path: metadata.annotations
           value:
+            konghq.com/https-redirect-status-code: "301"
+            konghq.com/protocols: https
+            konghq.com/strip-path: "true"
             unite.as/git-repository: github.com/laszlocph/demo-app
             unite.as/git-sha: xyz
 

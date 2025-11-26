@@ -1,8 +1,7 @@
 ingress:
   host: chart-example.local
-  ingressClassName: nginx
 
-gitRepository: laszlocph/demo-app
+gitRepository: unite.as/demo-app
 gitSha: xyz
 
 
