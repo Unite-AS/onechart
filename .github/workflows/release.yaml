@@ -8,8 +8,6 @@ on:
 permissions:
   packages: write
   contents: write
-env:
-  GITHUB_TOKEN: ${{ secrets.GH_PACKAGE_TOKEN }}
 
 jobs:
   release:
@@ -82,6 +80,17 @@ jobs:
         TAG_VERSION: ${{ steps.versioning.outputs.tag_version }}
         title: Release ${{ github.ref }}
         GH_TOKEN: ${{ github.token }}
+
+    - name: Test token (remove after debugging)
+      run: |
+        if [ -z "$GH_PACKAGE_TOKEN" ]; then
+          echo "Token is empty or not set"
+          exit 1
+        else
+          echo "Token is set (length: ${#GH_PACKAGE_TOKEN})"
+        fi
+      env:
+        GH_PACKAGE_TOKEN: ${{ secrets.GH_PACKAGE_TOKEN }}
 
     - name: Publish to to GHCR
       run: |
