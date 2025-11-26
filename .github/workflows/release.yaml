@@ -83,7 +83,7 @@ jobs:
 
     - name: Publish to to GHCR
       run: |
-        echo ${{ secrets.UNITE_TECH_BOT_PAT }} | helm registry login ghcr.io --username unite-tech-bot --password-stdin
+        echo ${{ secrets.DEPLOY_BOT_TOKEN }} | helm registry login ghcr.io --username unite-tech-bot --password-stdin
         # Push onechart package with error handling
         if helm push docs/onechart-${CHART_VERSION}.tgz oci://ghcr.io/unite-as; then
           echo "Successfully pushed onechart to GHCR"
