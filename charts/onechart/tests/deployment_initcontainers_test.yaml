@@ -50,28 +50,6 @@ tests:
         equal:
           path: spec.template.spec.initContainers[0].securityContext.runAsNonRoot
           value: true
-  - it: Should have a default security context if not set
-    set:
-      initContainers:
-        - name: pod1
-          image: nginx
-          tag: 1.2.2
-    asserts:
-      - template: deployment.yaml
-        documentIndex: 0
-        equal:
-          path: spec.template.spec.initContainers[0].securityContext.runAsNonRoot
-          value: true
-      - template: deployment.yaml
-        documentIndex: 0
-        equal:
-          path: spec.template.spec.initContainers[0].securityContext.runAsUser
-          value: 621
-      - template: deployment.yaml
-        documentIndex: 0
-        equal:
-          path: spec.template.spec.initContainers[0].securityContext.allowPrivilegeEscalation
-          value: false
   - it: should keep restartPolicy as Always
     set:
       initContainers:

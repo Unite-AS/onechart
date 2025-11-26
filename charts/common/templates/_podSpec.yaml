@@ -9,7 +9,6 @@ imagePullSecrets:
 securityContext:
   runAsNonRoot: {{ hasKey .Values.podSecurityContext "runAsNonRoot" | ternary .Values.podSecurityContext.runAsNonRoot true }}
   runAsUser: {{ hasKey .Values.podSecurityContext "runAsUser" | ternary .Values.podSecurityContext.runAsUser 621 }}
-  allowPrivilegeEscalation: {{ hasKey .Values.podSecurityContext "allowPrivilegeEscalation" | ternary .Values.podSecurityContext.allowPrivilegeEscalation false }}
   {{- range $key, $value := .Values.podSecurityContext }}
   {{- if not (or (eq $key "runAsNonRoot") (eq $key "runAsUser") (eq $key "allowPrivilegeEscalation")) }}
   {{ $key }}: {{ $value }}
@@ -19,7 +18,6 @@ securityContext:
 securityContext:
   runAsNonRoot: true
   runAsUser: 621
-  allowPrivilegeEscalation: false
 {{- end }}
 {{- if .Values.serviceAccount }}
 serviceAccountName: {{ .Values.serviceAccount }}
@@ -53,8 +51,7 @@ initContainers:
     securityContext:
       runAsNonRoot: true
       runAsUser: 621
-      allowPrivilegeEscalation: false
-    {{- end}}
+    {{- end }}
     {{- if .resources }}
     resources:
     {{- toYaml .resources | nindent 6 }}

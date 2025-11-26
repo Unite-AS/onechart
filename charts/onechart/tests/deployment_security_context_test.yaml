@@ -1,0 +1,43 @@
+suite: test deployment
+templates:
+  - deployment.yaml
+  - configmap.yaml
+tests:
+  - it: Should set default security context
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 621
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: false
+  - it: Should merge pod security context with defaults
+    set:
+      securityContext:
+        runAsNonRoot: false
+        allowPrivilegeEscalation: false
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: false
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 621
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: false
