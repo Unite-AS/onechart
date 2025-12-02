@@ -3,7 +3,7 @@ templates:
   - deployment.yaml
   - configmap.yaml
 tests:
-  - it: Should render resoucres if not ignored by default
+  - it: Should render resources if not ignored by default
     set:
       {}
     asserts:

@@ -88,5 +88,9 @@ nodePortEnabled: false
 monitor:
   enabled: false
 
+autoscale:
+  enabled: false
+  minReplicas: 1
+
 container: {}
 podSpec: {}

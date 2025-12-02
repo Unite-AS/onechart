@@ -1,0 +1,34 @@
+{{- if and (.Values.autoscale) (.Values.autoscale.enabled) (.Values.resources) (.Values.resources.limits) (not .Values.resources.ignore) (or .Values.resources.limits.memory .Values.resources.limits.cpu) }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ template "robustName" .Release.Name }}
+spec:
+  {{- if .Values.autoscale.minReplicas }}
+  minReplicas: {{ .Values.autoscale.minReplicas }}
+  {{- else }}
+  minReplicas: 1
+  {{- end }}
+  maxReplicas: {{ .Values.autoscale.maxReplicas }}
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ template "robustName" .Release.Name }}
+  metrics:
+    {{- if and (.Values.autoscale.targetCPUUtilizationPercentage) (.Values.resources) (.Values.resources.limits) (.Values.resources.limits.cpu) }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscale.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if and (.Values.autoscale.targetMemoryUtilizationPercentage) (.Values.resources) (.Values.resources.limits) (.Values.resources.limits.memory) }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscale.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}

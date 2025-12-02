@@ -2,33 +2,59 @@ apiVersion: v1
 entries:
   cron-job:
   - apiVersion: v2
-    created: "2025-11-26T13:09:02.507534+01:00"
+    created: "2025-12-02T13:31:04.798836+01:00"
     dependencies:
     - name: common
       repository: file://../common
       version: 1.0.1
     description: A generic Helm chart for your application deployments.
-    digest: a1dbffba3de1590c687b16dcae95ec6a918e1f443b8d4b8f94dfaed3d4a02a8c
+    digest: e826de2e90cc618767a72e5f024ee11e456b2cf1651e1e6a6b98996283ffd91f
+    name: cron-job
+    type: application
+    urls:
+    - cron-job-0.20.0.tgz
+    version: 0.20.0
+  - apiVersion: v2
+    created: "2025-12-02T13:31:04.798529+01:00"
+    dependencies:
+    - name: common
+      repository: file://../common
+      version: 1.0.1
+    description: A generic Helm chart for your application deployments.
+    digest: 38f931ca45b3f2f9a9f86980ec6daf84edda377f1d081b0538158a36bbeec8d8
+    name: cron-job
+    type: application
+    urls:
+    - cron-job-0.18.0.tgz
+    version: 0.18.0
+  - apiVersion: v2
+    created: "2025-12-02T13:31:04.797825+01:00"
+    dependencies:
+    - name: common
+      repository: file://../common
+      version: 1.0.1
+    description: A generic Helm chart for your application deployments.
+    digest: 12847d1b3360e40d3c597982a980078716f85c8fbc6fa8c7ade126408e4c3727
     name: cron-job
     type: application
     urls:
     - cron-job-0.17.0.tgz
     version: 0.17.0
   - apiVersion: v2
-    created: "2025-11-26T13:09:02.506713+01:00"
+    created: "2025-12-02T13:31:04.797225+01:00"
     dependencies:
     - name: common
       repository: file://../common
       version: 1.0.1
     description: A generic Helm chart for your application deployments.
-    digest: 351574dc34397517b850af6ebc9a78bd964ef9d3f1e7d2ce17fc7c07f88af919
+    digest: a3f4b2d54ae60b7b1f1ea1c90905b0618a3a29c3f19b1d115b54ad7b4dd7216e
     name: cron-job
     type: application
     urls:
     - cron-job-0.16.0.tgz
     version: 0.16.0
   - apiVersion: v2
-    created: "2025-11-26T13:09:02.506294+01:00"
+    created: "2025-12-02T13:31:04.796773+01:00"
     dependencies:
     - name: common
       repository: file://../common
@@ -41,7 +67,7 @@ entries:
     - cron-job-0.15.0.tgz
     version: 0.15.0
   - apiVersion: v2
-    created: "2025-11-26T13:09:02.505794+01:00"
+    created: "2025-12-02T13:31:04.796278+01:00"
     dependencies:
     - name: common
       repository: file://../common
@@ -54,7 +80,7 @@ entries:
     - cron-job-0.13.0.tgz
     version: 0.13.0
   - apiVersion: v2
-    created: "2025-11-26T13:09:02.505212+01:00"
+    created: "2025-12-02T13:31:04.795761+01:00"
     dependencies:
     - name: common
       repository: file://../common
@@ -67,7 +93,7 @@ entries:
     - cron-job-0.12.0.tgz
     version: 0.12.0
   - apiVersion: v2
-    created: "2025-11-26T13:09:02.504433+01:00"
+    created: "2025-12-02T13:31:04.795196+01:00"
     dependencies:
     - name: common
       repository: file://../common
@@ -80,7 +106,7 @@ entries:
     - cron-job-0.11.0.tgz
     version: 0.11.0
   - apiVersion: v2
-    created: "2025-11-26T13:09:02.503812+01:00"
+    created: "2025-12-02T13:31:04.79461+01:00"
     dependencies:
     - name: common
       repository: file://../common
@@ -93,7 +119,7 @@ entries:
     - cron-job-0.10.0.tgz
     version: 0.10.0
   - apiVersion: v2
-    created: "2025-11-26T13:09:02.508668+01:00"
+    created: "2025-12-02T13:31:04.799775+01:00"
     dependencies:
     - name: common
       repository: file://../common
@@ -106,7 +132,7 @@ entries:
     - cron-job-0.9.1.tgz
     version: 0.9.1
   - apiVersion: v2
-    created: "2025-11-26T13:09:02.508055+01:00"
+    created: "2025-12-02T13:31:04.799304+01:00"
     dependencies:
     - name: common
       repository: file://../common
@@ -120,33 +146,46 @@ entries:
     version: 0.9.0
   onechart:
   - apiVersion: v2
-    created: "2025-11-26T13:09:02.513962+01:00"
+    created: "2025-12-02T13:31:04.805689+01:00"
     dependencies:
     - name: common
       repository: file://../common
       version: 1.0.1
     description: A generic Helm chart for your application deployments.
-    digest: a7e374064705e65e4723e89a5ec69b7f47e284d2dfc1b0288268dd4ce3a3970b
+    digest: 985a90e4576ff1718b2896498a56c76b0fefe5cac546793d3fdff9113075b2ac
+    name: onechart
+    type: application
+    urls:
+    - onechart-0.20.0.tgz
+    version: 0.20.0
+  - apiVersion: v2
+    created: "2025-12-02T13:31:04.805217+01:00"
+    dependencies:
+    - name: common
+      repository: file://../common
+      version: 1.0.1
+    description: A generic Helm chart for your application deployments.
+    digest: c64adbb27e212ca6bd9156fa228041d018691e6b853efe5aaafddf074c582f87
     name: onechart
     type: application
     urls:
     - onechart-0.17.0.tgz
     version: 0.17.0
   - apiVersion: v2
-    created: "2025-11-26T13:09:02.513449+01:00"
+    created: "2025-12-02T13:31:04.804584+01:00"
     dependencies:
     - name: common
       repository: file://../common
       version: 1.0.1
     description: A generic Helm chart for your application deployments.
-    digest: fc6cb241a4a4239ab8a88f834155eca22c57005ad50a5ec8780eab9e564c8d69
+    digest: aa5c103867d901d836ac90f14d5f44a1bc8fdd474758de86b7baf08e69d790b9
     name: onechart
     type: application
     urls:
     - onechart-0.16.0.tgz
     version: 0.16.0
   - apiVersion: v2
-    created: "2025-11-26T13:09:02.51252+01:00"
+    created: "2025-12-02T13:31:04.803658+01:00"
     dependencies:
     - name: common
       repository: file://../common
@@ -159,7 +198,7 @@ entries:
     - onechart-0.15.0.tgz
     version: 0.15.0
   - apiVersion: v2
-    created: "2025-11-26T13:09:02.511925+01:00"
+    created: "2025-12-02T13:31:04.803018+01:00"
     dependencies:
     - name: common
       repository: file://../common
@@ -172,7 +211,7 @@ entries:
     - onechart-0.14.0.tgz
     version: 0.14.0
   - apiVersion: v2
-    created: "2025-11-26T13:09:02.511298+01:00"
+    created: "2025-12-02T13:31:04.802387+01:00"
     dependencies:
     - name: common
       repository: file://../common
@@ -185,7 +224,7 @@ entries:
     - onechart-0.13.0.tgz
     version: 0.13.0
   - apiVersion: v2
-    created: "2025-11-26T13:09:02.510572+01:00"
+    created: "2025-12-02T13:31:04.801673+01:00"
     dependencies:
     - name: common
       repository: file://../common
@@ -198,7 +237,7 @@ entries:
     - onechart-0.12.0.tgz
     version: 0.12.0
   - apiVersion: v2
-    created: "2025-11-26T13:09:02.509917+01:00"
+    created: "2025-12-02T13:31:04.801029+01:00"
     dependencies:
     - name: common
       repository: file://../common
@@ -211,7 +250,7 @@ entries:
     - onechart-0.11.0.tgz
     version: 0.11.0
   - apiVersion: v2
-    created: "2025-11-26T13:09:02.509324+01:00"
+    created: "2025-12-02T13:31:04.800416+01:00"
     dependencies:
     - name: common
       repository: file://../common
@@ -224,7 +263,7 @@ entries:
     - onechart-0.10.0.tgz
     version: 0.10.0
   - apiVersion: v2
-    created: "2025-11-26T13:09:02.51519+01:00"
+    created: "2025-12-02T13:31:04.806869+01:00"
     dependencies:
     - name: common
       repository: file://../common
@@ -237,7 +276,7 @@ entries:
     - onechart-0.9.1.tgz
     version: 0.9.1
   - apiVersion: v2
-    created: "2025-11-26T13:09:02.514585+01:00"
+    created: "2025-12-02T13:31:04.806279+01:00"
     dependencies:
     - name: common
       repository: file://../common
@@ -249,4 +288,4 @@ entries:
     urls:
     - onechart-0.9.0.tgz
     version: 0.9.0
-generated: "2025-11-26T13:09:02.503094+01:00"
+generated: "2025-12-02T13:31:04.793935+01:00"
