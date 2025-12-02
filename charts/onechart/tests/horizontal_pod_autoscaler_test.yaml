@@ -1,0 +1,129 @@
+suite: test horizontal pod autoscaler
+templates:
+  - deployment.yaml
+  - configmap.yaml
+  - horizontal-pod-autoscaler.yaml
+tests:
+  - it: Should create HorizontalPodAutoscaler given all parameters
+    set:
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+      autoscale:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 100
+        targetCPUUtilizationPercentage: 80
+        targetMemoryUtilizationPercentage: 80
+    asserts:
+      - template: horizontal-pod-autoscaler.yaml
+        documentIndex: 0
+        equal:
+          path: spec.minReplicas
+          value: 1
+      - template: horizontal-pod-autoscaler.yaml
+        documentIndex: 0
+        equal:
+          path: spec.maxReplicas
+          value: 100
+      - template: horizontal-pod-autoscaler.yaml
+        documentIndex: 0
+        equal:
+          path: spec.metrics[0].resource.target.averageUtilization
+          value: 80
+      - template: horizontal-pod-autoscaler.yaml
+        documentIndex: 0
+        equal:
+          path: spec.metrics[1].resource.target.averageUtilization
+          value: 80
+  - it: Should disable the HorizontalPodAutoscaler with all parameters
+    set:
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+      autoscale:
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 100
+        targetCPUUtilizationPercentage: 80
+        targetMemoryUtilizationPercentage: 80
+    asserts:
+      - template: horizontal-pod-autoscaler.yaml
+        hasDocuments:
+          count: 0
+  - it: Should not create HorizontalPodAutoscaler when autoscale is not defined
+    set:
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+    asserts:
+      - template: horizontal-pod-autoscaler.yaml
+        hasDocuments:
+          count: 0
+  - it: Should not create HorizontalPodAutoscaler when no resource limits are set
+    set:
+      resources:
+        ignore: true
+      autoscale:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 100
+        targetCPUUtilizationPercentage: 80
+        targetMemoryUtilizationPercentage: 80
+    asserts:
+      - template: horizontal-pod-autoscaler.yaml
+        hasDocuments:
+          count: 0
+  - it: Should only create cpu utilization HorizontalPodAutoscaler
+    set:
+      autoscale:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 100
+        targetCPUUtilizationPercentage: 81
+    asserts:
+      - template: horizontal-pod-autoscaler.yaml
+        documentIndex: 0
+        equal:
+          path: spec.metrics[0].resource.target.averageUtilization
+          value: 81
+      - template: horizontal-pod-autoscaler.yaml
+        documentIndex: 0
+        isNull:
+          path: spec.metrics[1]
+  - it: Should only create memory utilization HorizontalPodAutoscaler
+    set:
+      autoscale:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 100
+        targetMemoryUtilizationPercentage: 82
+    asserts:
+      - template: horizontal-pod-autoscaler.yaml
+        documentIndex: 0
+        equal:
+          path: spec.metrics[0].resource.target.averageUtilization
+          value: 82
+      - template: horizontal-pod-autoscaler.yaml
+        documentIndex: 0
+        isNull:
+          path: spec.metrics[1]
+  - it: Should set have a default minReplicas of 1
+    set:
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+      autoscale:
+        enabled: true
+        maxReplicas: 100
+        targetMemoryUtilizationPercentage: 80
+    asserts:
+      - template: horizontal-pod-autoscaler.yaml
+        documentIndex: 0
+        equal:
+          path: spec.minReplicas
+          value: 1
