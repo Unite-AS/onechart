@@ -4,6 +4,7 @@ name: {{ template "robustName" .Release.Name }}
 securityContext:
   runAsNonRoot: {{ hasKey .Values.securityContext "runAsNonRoot" | ternary .Values.securityContext.runAsNonRoot true }}
   runAsUser: {{ hasKey .Values.securityContext "runAsUser" | ternary .Values.securityContext.runAsUser 621 }}
+  runAsGroup: {{ hasKey .Values.securityContext "runAsGroup" | ternary .Values.securityContext.runAsGroup 999 }}
   readOnlyRootFilesystem: {{ hasKey .Values.securityContext "readOnlyRootFilesystem" | ternary .Values.securityContext.readOnlyRootFilesystem true }}
   allowPrivilegeEscalation: {{ hasKey .Values.securityContext "allowPrivilegeEscalation" | ternary .Values.securityContext.allowPrivilegeEscalation false }}
   {{- range $key, $value := .Values.securityContext }}
@@ -15,6 +16,7 @@ securityContext:
 securityContext:
   runAsNonRoot: true
   runAsUser: 621
+  runAsGroup: 999
   readOnlyRootFilesystem: true
   allowPrivilegeEscalation: false
 {{- end }}

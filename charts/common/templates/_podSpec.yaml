@@ -10,6 +10,8 @@ securityContext:
   runAsNonRoot: {{ hasKey .Values.podSecurityContext "runAsNonRoot" | ternary .Values.podSecurityContext.runAsNonRoot true }}
   runAsUser: {{ hasKey .Values.podSecurityContext "runAsUser" | ternary .Values.podSecurityContext.runAsUser 621 }}
   runAsGroup: {{ hasKey .Values.podSecurityContext "runAsGroup" | ternary .Values.podSecurityContext.runAsGroup 999 }}
+  allowPrivilegeEscalation: {{ hasKey .Values.podSecurityContext "allowPrivilegeEscalation" | ternary .Values.podSecurityContext.allowPrivilegeEscalation false }}
+  readOnlyRootFilesystem: {{ hasKey .Values.podSecurityContext "readOnlyRootFilesystem" | ternary .Values.podSecurityContext.readOnlyRootFilesystem true }}
   {{- range $key, $value := .Values.podSecurityContext }}
   {{- if not (or (eq $key "runAsNonRoot") (eq $key "runAsUser") (eq $key "allowPrivilegeEscalation")) }}
   {{ $key }}: {{ $value }}
@@ -21,6 +23,7 @@ securityContext:
   runAsUser: 621
   runAsGroup: 999
   allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
 {{- end }}
 {{- if .Values.serviceAccount }}
 serviceAccountName: {{ .Values.serviceAccount }}
@@ -56,6 +59,7 @@ initContainers:
       runAsUser: 621
       runAsGroup: 999
       allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
     {{- end }}
     {{- if .resources }}
     resources:
