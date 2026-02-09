@@ -17,7 +17,6 @@ tests:
               path: "/"
               port: 80
               scheme: HTTP
-            initialDelaySeconds: 0
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 3
@@ -44,7 +43,6 @@ tests:
               path: "/"
               port: 80
               scheme: HTTP
-            initialDelaySeconds: 0
             periodSeconds: 30
             successThreshold: 1
             timeoutSeconds: 3

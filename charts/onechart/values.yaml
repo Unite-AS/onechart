@@ -51,7 +51,6 @@ probe:
   enabled: false
   path: "/"
   settings:
-    initialDelaySeconds: 0
     periodSeconds: 10
     successThreshold: 1
     timeoutSeconds: 3
@@ -62,7 +61,6 @@ livenessProbe:
   enabled: false
   path: "/"
   settings:
-    initialDelaySeconds: 0
     periodSeconds: 10
     successThreshold: 1
     timeoutSeconds: 3
@@ -72,7 +70,6 @@ startupProbe:
   enabled: false
   path: "/"
   settings:
-    initialDelaySeconds: 0
     periodSeconds: 10
     successThreshold: 1
     timeoutSeconds: 3
