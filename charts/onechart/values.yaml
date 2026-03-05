@@ -45,7 +45,11 @@ resources:
 
 nodeSelector: {}
 
-tolerations: []
+tolerations:
+  - key: "kubernetes.azure.com/scalesetpriority"
+    operator: "Equal"
+    value: "spot"
+    effect: "NoSchedule"
 
 probe:
   enabled: false
