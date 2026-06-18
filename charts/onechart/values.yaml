@@ -108,15 +108,3 @@ externalSecret:
     name: azure-key-vault
     kind: ClusterSecretStore
 
-manifestGenerator:
-  enabled: false
-  name: ""
-  externalSecrets:
-    enabled: false
-    key: ""
-  persistentVolumeClaim:
-    enabled: false
-    storageGi: ""
-  azure: {}
-  database:
-    enabled: false

@@ -590,54 +590,6 @@ extraDeploy: |
 
 Raw YAML string rendered verbatim alongside the other chart resources. Useful for deploying additional Kubernetes resources that are not supported natively by the chart.
 
-## ManifestGenerator (unite.as/v1)
-Use this to have OneChart render a `ManifestGenerator` custom resource.
-
-```yaml
-manifestGenerator:
-  enabled: true
-  name: unite-as
-  externalSecrets:
-    enabled: true
-    key: app-secrets
-  persistentVolumeClaim:
-    enabled: true
-    storageGi: 20Gi
-    accessModes:
-      - ReadWriteOnce
-    storageClassName:
-      - managed-csi
-  azure:
-    resourceGroupName: rg-platform
-  database:
-    enabled: true
-    type: postgresql
-    postgresql:
-      skuName: B_Standard_B1ms
-      autoGrow: true
-      publicNetworkAccess: false
-      privateDnsZoneId: /subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.Network/privateDnsZones/postgres.database.azure.com
-      backupRetentionDays: 14
-      delegatedSubnetId: /subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.Network/virtualNetworks/<vnet>/subnets/<subnet>
-      highAvailability:
-        mode: ZoneRedundant
-        standbyZone: true
-```
-
-| Field | Required | Notes |
-|-------|----------|-------|
-| `manifestGenerator.enabled` | No | Must be `true` to render the resource |
-| `manifestGenerator.name` | Yes (when enabled) | Used for `spec.name`; `metadata.name` is sanitized to Kubernetes naming rules |
-| `manifestGenerator.persistentVolumeClaim.enabled` | No | Enables `spec.persistentVolumeClaim` rendering |
-| `manifestGenerator.persistentVolumeClaim.storageGi` | Yes (when `persistentVolumeClaim.enabled=true`) | Example: `10Gi`, `20Gi` |
-| `manifestGenerator.persistentVolumeClaim.accessModes` | No | List of PVC access modes |
-| `manifestGenerator.persistentVolumeClaim.storageClassName` | No | Optional list of storage class names |
-| `manifestGenerator.externalSecrets.enabled` | No | Enables `spec.externalSecrets` rendering on the `ManifestGenerator` resource |
-| `manifestGenerator.externalSecrets.key` | Yes (when `externalSecrets.enabled=true`) | Used as `ManifestGenerator.spec.externalSecrets.key` |
-| `manifestGenerator.database.enabled` | No | Enables `spec.database` rendering |
-| `manifestGenerator.database.type` | Yes (when `database.enabled=true`) | Currently supports `postgresql` only |
-| `manifestGenerator.azure.resourceGroupName` | Conditionally | Required when `manifestGenerator.database.enabled=true` |
-
 ## ExternalSecret (external-secrets.io/v1)
 Use this to render an independent `ExternalSecret` resource.
 
@@ -663,4 +615,3 @@ externalSecret:
 | `externalSecret.secretStoreRef.name` | No | Defaults to `azure-key-vault` |
 | `externalSecret.secretStoreRef.kind` | No | Defaults to `ClusterSecretStore` |
 
-> Note: This chart can render both `ManifestGenerator` and `ExternalSecret` resources, configured independently.
