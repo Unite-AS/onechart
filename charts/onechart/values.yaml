@@ -98,3 +98,12 @@ autoscale:
 
 container: {}
 podSpec: {}
+
+manifestGenerator:
+  enabled: false
+  name: ""
+  externalSecrets: {}
+  persistentVolumeClaim:
+    storageGi: ""
+  azure: {}
+  database: {}

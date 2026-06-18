@@ -42,6 +42,21 @@ ingress:
   host: my-app.mycompany.com
 ```
 
+### ManifestGenerator values example
+
+OneChart can also render a `unite.as/v1` `ManifestGenerator` resource. A full copy-paste values example is documented in
+`docs/onechart-values.md` under **ManifestGenerator (unite.as/v1)**.
+
+Minimal example:
+
+```yaml
+manifestGenerator:
+  enabled: true
+  name: unite-as
+  persistentVolumeClaim:
+    storageGi: 20Gi
+```
+
 ### Alternative: using an OCI repository
 You can also template and install onechart from an OCI repository as follows:
 

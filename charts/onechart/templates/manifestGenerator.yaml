@@ -1,0 +1,72 @@
+{{- if .Values.manifestGenerator.enabled }}
+{{- $manifestGenerator := .Values.manifestGenerator }}
+{{- if and $manifestGenerator.database.type (ne $manifestGenerator.database.type "postgresql") }}
+{{- fail "manifestGenerator.database.type must be \"postgresql\" when set" }}
+{{- end }}
+apiVersion: unite.as/v1
+kind: ManifestGenerator
+metadata:
+  name: {{ template "robustName" (required "manifestGenerator.name is required when manifestGenerator.enabled=true" $manifestGenerator.name) }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "helm-chart.labels" . | nindent 4 }}
+spec:
+  name: {{ required "manifestGenerator.name is required when manifestGenerator.enabled=true" $manifestGenerator.name | quote }}
+  persistentVolumeClaim:
+    storageGi: {{ required "manifestGenerator.persistentVolumeClaim.storageGi is required when manifestGenerator.enabled=true" $manifestGenerator.persistentVolumeClaim.storageGi | quote }}
+    {{- with $manifestGenerator.persistentVolumeClaim.accessModes }}
+    accessModes:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with $manifestGenerator.persistentVolumeClaim.storageClassName }}
+    storageClassName:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  {{- if $manifestGenerator.externalSecrets.key }}
+  externalSecrets:
+    {{- with $manifestGenerator.externalSecrets.key }}
+    key: {{ . | quote }}
+    {{- end }}
+  {{- end }}
+  {{- if or $manifestGenerator.azure.resourceGroupName (eq $manifestGenerator.database.type "postgresql") }}
+  azure:
+    resourceGroupName: {{ required "manifestGenerator.azure.resourceGroupName is required when database.type is postgresql" $manifestGenerator.azure.resourceGroupName | quote }}
+  {{- end }}
+  {{- with $manifestGenerator.database }}
+  database:
+    type: {{ required "manifestGenerator.database.type is required when manifestGenerator.database is set" .type | quote }}
+    {{- with .postgresql }}
+    postgresql:
+      {{- with .skuName }}
+      skuName: {{ . | quote }}
+      {{- end }}
+      {{- if hasKey . "autoGrow" }}
+      autoGrow: {{ .autoGrow }}
+      {{- end }}
+      {{- if hasKey . "publicNetworkAccess" }}
+      publicNetworkAccess: {{ .publicNetworkAccess }}
+      {{- end }}
+      {{- with .privateDnsZoneId }}
+      privateDnsZoneId: {{ . | quote }}
+      {{- end }}
+      {{- with .backupRetentionDays }}
+      backupRetentionDays: {{ . }}
+      {{- end }}
+      {{- with .delegatedSubnetId }}
+      delegatedSubnetId: {{ . | quote }}
+      {{- end }}
+      {{- with .highAvailability }}
+      highAvailability:
+        {{- with .mode }}
+        mode: {{ . | quote }}
+        {{- end }}
+        {{- if hasKey . "standbyZone" }}
+        standbyZone: {{ .standbyZone }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+
+
+

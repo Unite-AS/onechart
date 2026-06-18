@@ -858,6 +858,126 @@
         }
       }
     },
+    "manifestGenerator": {
+      "$id": "#/properties/manifestGenerator",
+      "type": "object",
+      "title": "ManifestGenerator",
+      "description": "Configure generation of a unite.as/v1 ManifestGenerator custom resource",
+      "default": {},
+      "required": [],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Enabled",
+          "default": false
+        },
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "default": ""
+        },
+        "externalSecrets": {
+          "type": "object",
+          "default": {},
+          "properties": {
+            "key": {
+              "type": "string",
+              "title": "External Secret Key",
+              "default": ""
+            }
+          },
+          "additionalProperties": true
+        },
+        "persistentVolumeClaim": {
+          "type": "object",
+          "default": {},
+          "properties": {
+            "accessModes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "storageClassName": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "storageGi": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          "additionalProperties": true
+        },
+        "azure": {
+          "type": "object",
+          "default": {},
+          "properties": {
+            "resourceGroupName": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          "additionalProperties": true
+        },
+        "database": {
+          "type": "object",
+          "default": {},
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "postgresql"
+              ]
+            },
+            "postgresql": {
+              "type": "object",
+              "default": {},
+              "properties": {
+                "skuName": {
+                  "type": "string"
+                },
+                "autoGrow": {
+                  "type": "boolean"
+                },
+                "publicNetworkAccess": {
+                  "type": "boolean"
+                },
+                "privateDnsZoneId": {
+                  "type": "string"
+                },
+                "backupRetentionDays": {
+                  "type": "integer"
+                },
+                "delegatedSubnetId": {
+                  "type": "string"
+                },
+                "highAvailability": {
+                  "type": "object",
+                  "default": {},
+                  "properties": {
+                    "mode": {
+                      "type": "string"
+                    },
+                    "standbyZone": {
+                      "type": "boolean"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
     "existingFileSecrets": {
       "$id": "#/properties/existingFileSecrets",
       "type": "array",
