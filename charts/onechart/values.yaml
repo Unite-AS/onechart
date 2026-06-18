@@ -99,10 +99,21 @@ autoscale:
 container: {}
 podSpec: {}
 
+externalSecret:
+  enabled: false
+  # Defaults to secretName when omitted.
+  key: ""
+  refreshInterval: 1h0m0s
+  secretStoreRef:
+    name: azure-key-vault
+    kind: ClusterSecretStore
+
 manifestGenerator:
   enabled: false
   name: ""
-  externalSecrets: {}
+  externalSecrets:
+    enabled: false
+    key: ""
   persistentVolumeClaim:
     enabled: false
     storageGi: ""

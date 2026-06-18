@@ -41,6 +41,7 @@ tests:
         enabled: true
         name: unite-as
         externalSecrets:
+          enabled: true
           key: app-secrets
         persistentVolumeClaim:
           enabled: true

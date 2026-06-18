@@ -709,6 +709,43 @@
       "default": "",
       "examples": []
     },
+    "externalSecret": {
+      "$id": "#/properties/externalSecret",
+      "type": "object",
+      "title": "ExternalSecret",
+      "description": "Render an external-secrets.io ExternalSecret resource",
+      "default": {},
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "key": {
+          "type": "string",
+          "default": ""
+        },
+        "refreshInterval": {
+          "type": "string",
+          "default": "1h0m0s"
+        },
+        "secretStoreRef": {
+          "type": "object",
+          "default": {},
+          "properties": {
+            "name": {
+              "type": "string",
+              "default": "azure-key-vault"
+            },
+            "kind": {
+              "type": "string",
+              "default": "ClusterSecretStore"
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
     "secret": {
       "$id": "#/properties/secret",
       "type": "object",
@@ -880,12 +917,32 @@
           "type": "object",
           "default": {},
           "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
             "key": {
               "type": "string",
               "title": "External Secret Key",
               "default": ""
             }
           },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "enabled": {
+                    "const": true
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "key"
+                ]
+              }
+            }
+          ],
           "additionalProperties": true
         },
         "persistentVolumeClaim": {
@@ -1319,5 +1376,25 @@
       }
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "externalSecret": {
+            "properties": {
+              "enabled": {
+                "const": true
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "secretName"
+        ]
+      }
+    }
+  ],
   "additionalProperties": true
 }

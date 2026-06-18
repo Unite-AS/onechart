@@ -25,11 +25,9 @@ spec:
       {{- toYaml . | nindent 6 }}
     {{- end }}
   {{- end }}
-  {{- if $manifestGenerator.externalSecrets.key }}
+  {{- if $manifestGenerator.externalSecrets.enabled }}
   externalSecrets:
-    {{- with $manifestGenerator.externalSecrets.key }}
-    key: {{ . | quote }}
-    {{- end }}
+    key: {{ required "manifestGenerator.externalSecrets.key is required when manifestGenerator.externalSecrets.enabled=true" $manifestGenerator.externalSecrets.key | quote }}
   {{- end }}
   {{- if $databaseEnabled }}
   azure:

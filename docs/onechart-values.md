@@ -598,6 +598,7 @@ manifestGenerator:
   enabled: true
   name: unite-as
   externalSecrets:
+    enabled: true
     key: app-secrets
   persistentVolumeClaim:
     enabled: true
@@ -631,9 +632,35 @@ manifestGenerator:
 | `manifestGenerator.persistentVolumeClaim.storageGi` | Yes (when `persistentVolumeClaim.enabled=true`) | Example: `10Gi`, `20Gi` |
 | `manifestGenerator.persistentVolumeClaim.accessModes` | No | List of PVC access modes |
 | `manifestGenerator.persistentVolumeClaim.storageClassName` | No | Optional list of storage class names |
-| `manifestGenerator.externalSecrets.key` | No | Adds `spec.externalSecrets.key` |
+| `manifestGenerator.externalSecrets.enabled` | No | Enables `spec.externalSecrets` rendering on the `ManifestGenerator` resource |
+| `manifestGenerator.externalSecrets.key` | Yes (when `externalSecrets.enabled=true`) | Used as `ManifestGenerator.spec.externalSecrets.key` |
 | `manifestGenerator.database.enabled` | No | Enables `spec.database` rendering |
 | `manifestGenerator.database.type` | Yes (when `database.enabled=true`) | Currently supports `postgresql` only |
-| `manifestGenerator.azure.resourceGroupName` | Conditionally | Required when `manifestGenerator.database.type=postgresql` |
+| `manifestGenerator.azure.resourceGroupName` | Conditionally | Required when `manifestGenerator.database.enabled=true` |
 
-> Note: This chart only renders the custom resource YAML. The corresponding `ManifestGenerator` CRD/controller must be installed in your cluster.
+## ExternalSecret (external-secrets.io/v1)
+Use this to render an independent `ExternalSecret` resource.
+
+```yaml
+secretName: app-secrets
+
+externalSecret:
+  enabled: true
+  # optional: defaults to secretName when omitted
+  key: app-secrets-key
+  refreshInterval: 1h0m0s
+  secretStoreRef:
+    name: azure-key-vault
+    kind: ClusterSecretStore
+```
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `externalSecret.enabled` | No | Must be `true` to render the resource |
+| `secretName` | Yes (when `externalSecret.enabled=true`) | Used as `ExternalSecret.metadata.name` |
+| `externalSecret.key` | No | Used as `ExternalSecret.spec.dataFrom[0].extract.key`; defaults to `secretName` |
+| `externalSecret.refreshInterval` | No | Defaults to `1h0m0s` |
+| `externalSecret.secretStoreRef.name` | No | Defaults to `azure-key-vault` |
+| `externalSecret.secretStoreRef.kind` | No | Defaults to `ClusterSecretStore` |
+
+> Note: This chart can render both `ManifestGenerator` and `ExternalSecret` resources, configured independently.
