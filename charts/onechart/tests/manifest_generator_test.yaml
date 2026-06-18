@@ -7,13 +7,11 @@ tests:
       - hasDocuments:
           count: 0
 
-  - it: Should render required manifest generator fields
+  - it: Should render required manifest generator fields without persistent volume claim
     set:
       manifestGenerator:
         enabled: true
         name: unite-as
-        persistentVolumeClaim:
-          storageGi: 20Gi
     release:
       namespace: platform
     asserts:
@@ -32,9 +30,10 @@ tests:
       - equal:
           path: spec.name
           value: unite-as
-      - equal:
-          path: spec.persistentVolumeClaim.storageGi
-          value: 20Gi
+      - isNull:
+          path: spec.persistentVolumeClaim
+      - isNull:
+          path: spec.database
 
   - it: Should render optional manifest generator fields
     set:
@@ -44,6 +43,7 @@ tests:
         externalSecrets:
           key: app-secrets
         persistentVolumeClaim:
+          enabled: true
           storageGi: 50Gi
           accessModes:
             - ReadWriteOnce
@@ -52,6 +52,7 @@ tests:
         azure:
           resourceGroupName: rg-platform
         database:
+          enabled: true
           type: postgresql
           postgresql:
             skuName: B_Standard_B1ms

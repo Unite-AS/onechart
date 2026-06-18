@@ -600,6 +600,7 @@ manifestGenerator:
   externalSecrets:
     key: app-secrets
   persistentVolumeClaim:
+    enabled: true
     storageGi: 20Gi
     accessModes:
       - ReadWriteOnce
@@ -608,6 +609,7 @@ manifestGenerator:
   azure:
     resourceGroupName: rg-platform
   database:
+    enabled: true
     type: postgresql
     postgresql:
       skuName: B_Standard_B1ms
@@ -625,11 +627,13 @@ manifestGenerator:
 |-------|----------|-------|
 | `manifestGenerator.enabled` | No | Must be `true` to render the resource |
 | `manifestGenerator.name` | Yes (when enabled) | Used for `spec.name`; `metadata.name` is sanitized to Kubernetes naming rules |
-| `manifestGenerator.persistentVolumeClaim.storageGi` | Yes (when enabled) | Example: `10Gi`, `20Gi` |
+| `manifestGenerator.persistentVolumeClaim.enabled` | No | Enables `spec.persistentVolumeClaim` rendering |
+| `manifestGenerator.persistentVolumeClaim.storageGi` | Yes (when `persistentVolumeClaim.enabled=true`) | Example: `10Gi`, `20Gi` |
 | `manifestGenerator.persistentVolumeClaim.accessModes` | No | List of PVC access modes |
 | `manifestGenerator.persistentVolumeClaim.storageClassName` | No | Optional list of storage class names |
 | `manifestGenerator.externalSecrets.key` | No | Adds `spec.externalSecrets.key` |
-| `manifestGenerator.database.type` | No | Currently supports `postgresql` only |
+| `manifestGenerator.database.enabled` | No | Enables `spec.database` rendering |
+| `manifestGenerator.database.type` | Yes (when `database.enabled=true`) | Currently supports `postgresql` only |
 | `manifestGenerator.azure.resourceGroupName` | Conditionally | Required when `manifestGenerator.database.type=postgresql` |
 
 > Note: This chart only renders the custom resource YAML. The corresponding `ManifestGenerator` CRD/controller must be installed in your cluster.

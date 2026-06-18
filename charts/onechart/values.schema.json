@@ -892,6 +892,10 @@
           "type": "object",
           "default": {},
           "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
             "accessModes": {
               "type": "array",
               "items": {
@@ -911,6 +915,22 @@
               "default": ""
             }
           },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "enabled": {
+                    "const": true
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "storageGi"
+                ]
+              }
+            }
+          ],
           "additionalProperties": true
         },
         "azure": {
@@ -928,6 +948,10 @@
           "type": "object",
           "default": {},
           "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
             "type": {
               "type": "string",
               "enum": [
@@ -973,6 +997,22 @@
               "additionalProperties": true
             }
           },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "enabled": {
+                    "const": true
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "type"
+                ]
+              }
+            }
+          ],
           "additionalProperties": true
         }
       },

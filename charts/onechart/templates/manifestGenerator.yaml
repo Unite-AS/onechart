@@ -1,6 +1,7 @@
 {{- if .Values.manifestGenerator.enabled }}
 {{- $manifestGenerator := .Values.manifestGenerator }}
-{{- if and $manifestGenerator.database.type (ne $manifestGenerator.database.type "postgresql") }}
+{{- $databaseEnabled := $manifestGenerator.database.enabled }}
+{{- if and $databaseEnabled $manifestGenerator.database.type (ne $manifestGenerator.database.type "postgresql") }}
 {{- fail "manifestGenerator.database.type must be \"postgresql\" when set" }}
 {{- end }}
 apiVersion: unite.as/v1
@@ -12,8 +13,9 @@ metadata:
     {{- include "helm-chart.labels" . | nindent 4 }}
 spec:
   name: {{ required "manifestGenerator.name is required when manifestGenerator.enabled=true" $manifestGenerator.name | quote }}
+  {{- if $manifestGenerator.persistentVolumeClaim.enabled }}
   persistentVolumeClaim:
-    storageGi: {{ required "manifestGenerator.persistentVolumeClaim.storageGi is required when manifestGenerator.enabled=true" $manifestGenerator.persistentVolumeClaim.storageGi | quote }}
+    storageGi: {{ required "manifestGenerator.persistentVolumeClaim.storageGi is required when manifestGenerator.persistentVolumeClaim.enabled=true" $manifestGenerator.persistentVolumeClaim.storageGi | quote }}
     {{- with $manifestGenerator.persistentVolumeClaim.accessModes }}
     accessModes:
       {{- toYaml . | nindent 6 }}
@@ -22,20 +24,21 @@ spec:
     storageClassName:
       {{- toYaml . | nindent 6 }}
     {{- end }}
+  {{- end }}
   {{- if $manifestGenerator.externalSecrets.key }}
   externalSecrets:
     {{- with $manifestGenerator.externalSecrets.key }}
     key: {{ . | quote }}
     {{- end }}
   {{- end }}
-  {{- if or $manifestGenerator.azure.resourceGroupName (eq $manifestGenerator.database.type "postgresql") }}
+  {{- if $databaseEnabled }}
   azure:
-    resourceGroupName: {{ required "manifestGenerator.azure.resourceGroupName is required when database.type is postgresql" $manifestGenerator.azure.resourceGroupName | quote }}
+    resourceGroupName: {{ required "manifestGenerator.azure.resourceGroupName is required when manifestGenerator.database.enabled=true" $manifestGenerator.azure.resourceGroupName | quote }}
   {{- end }}
-  {{- with $manifestGenerator.database }}
+  {{- if $databaseEnabled }}
   database:
-    type: {{ required "manifestGenerator.database.type is required when manifestGenerator.database is set" .type | quote }}
-    {{- with .postgresql }}
+    type: {{ required "manifestGenerator.database.type is required when manifestGenerator.database.enabled=true" $manifestGenerator.database.type | quote }}
+    {{- with $manifestGenerator.database.postgresql }}
     postgresql:
       {{- with .skuName }}
       skuName: {{ . | quote }}

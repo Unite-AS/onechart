@@ -104,6 +104,8 @@ manifestGenerator:
   name: ""
   externalSecrets: {}
   persistentVolumeClaim:
+    enabled: false
     storageGi: ""
   azure: {}
-  database: {}
+  database:
+    enabled: false

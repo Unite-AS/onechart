@@ -54,6 +54,7 @@ manifestGenerator:
   enabled: true
   name: unite-as
   persistentVolumeClaim:
+    enabled: true
     storageGi: 20Gi
 ```
 
