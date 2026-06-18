@@ -746,6 +746,69 @@
       },
       "additionalProperties": true
     },
+    "postgresqlDatabase": {
+      "$id": "#/properties/postgresqlDatabase",
+      "type": "object",
+      "title": "PostgreSQLDatabase",
+      "description": "Render a unite.as/v1alpha1 PostgreSQLDatabase resource",
+      "default": {},
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "projectName": {
+          "type": "string",
+          "default": ""
+        },
+        "resourceGroupName": {
+          "type": "string",
+          "default": ""
+        },
+        "skuName": {
+          "type": "string",
+          "default": "B_Standard_B1ms"
+        },
+        "autoGrow": {
+          "type": "boolean",
+          "default": false
+        },
+        "publicNetworkAccess": {
+          "type": "boolean",
+          "default": true
+        },
+        "privateDnsZoneId": {
+          "type": "string",
+          "default": ""
+        },
+        "backupRetentionDays": {
+          "type": "integer",
+          "default": 7,
+          "minimum": 7,
+          "maximum": 35
+        },
+        "delegatedSubnetId": {
+          "type": "string",
+          "default": ""
+        },
+        "highAvailability": {
+          "type": "object",
+          "default": {},
+          "properties": {
+            "mode": {
+              "type": "string",
+              "default": ""
+            },
+            "standbyZone": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
     "secret": {
       "$id": "#/properties/secret",
       "type": "object",

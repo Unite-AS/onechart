@@ -242,7 +242,7 @@ volumes:
   - name: data
     path: /data
     size: 10Gi
-    storageClass: default   # "standard" on GCP, "default" on Azure, "do-block-storage" on DigitalOcean
+    storageClass: default  # "default" on Azure
 ```
 
 ### Use an existing PVC

@@ -1,0 +1,29 @@
+{{- if .Values.postgresqlDatabase.enabled }}
+{{- $postgres := .Values.postgresqlDatabase }}
+{{- $projectName := default (include "robustName" .Release.Name) $postgres.projectName }}
+{{- $highAvailability := default (dict) $postgres.highAvailability }}
+{{- $highAvailabilityMode := default "" $highAvailability.mode }}
+{{- $highAvailabilityStandbyZone := default "" $highAvailability.standbyZone }}
+{{- if or (and (ne $highAvailabilityMode "") (eq $highAvailabilityStandbyZone "")) (and (eq $highAvailabilityMode "") (ne $highAvailabilityStandbyZone "")) }}
+{{- fail "postgresqlDatabase.highAvailability.mode and postgresqlDatabase.highAvailability.standbyZone must both be set when highAvailability is configured" }}
+{{- end }}
+apiVersion: unite.as/v1alpha1
+kind: PostgreSQLDatabase
+metadata:
+  name: {{ printf "%s-postgresql-server" $projectName }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  projectName: {{ $projectName | quote }}
+  resourceGroupName: {{ default "" $postgres.resourceGroupName | quote }}
+  skuName: {{ default "B_Standard_B1ms" $postgres.skuName | quote }}
+  autoGrow: {{ default false $postgres.autoGrow }}
+  publicNetworkAccess: {{ default true $postgres.publicNetworkAccess }}
+  privateDnsZoneId: {{ default "" $postgres.privateDnsZoneId | quote }}
+  backupRetentionDays: {{ default 7 $postgres.backupRetentionDays }}
+  delegatedSubnetId: {{ default "" $postgres.delegatedSubnetId | quote }}
+  highAvailabilityMode: {{ $highAvailabilityMode | quote }}
+  highAvailabilityStandbyZone: {{ $highAvailabilityStandbyZone | quote }}
+{{- end }}
+
+
+

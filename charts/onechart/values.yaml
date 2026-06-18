@@ -108,3 +108,18 @@ externalSecret:
     name: azure-key-vault
     kind: ClusterSecretStore
 
+postgresqlDatabase:
+  enabled: false
+  # Defaults to release name when omitted.
+  projectName: ""
+  resourceGroupName: ""
+  skuName: B_Standard_B1ms
+  autoGrow: false
+  publicNetworkAccess: true
+  privateDnsZoneId: ""
+  backupRetentionDays: 7
+  delegatedSubnetId: ""
+  highAvailability:
+    mode: ""
+    standbyZone: ""
+
