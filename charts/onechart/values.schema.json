@@ -896,6 +896,13 @@
       ],
       "required": [],
       "properties": {
+        "name": {
+          "$id": "#/properties/ingress/properties/name",
+          "type": "string",
+          "title": "Ingress Name",
+          "description": "Optional explicit name for the Ingress resource",
+          "default": ""
+        },
         "host": {
           "$id": "#/properties/ingress/properties/host",
           "type": "string",

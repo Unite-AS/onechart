@@ -5,6 +5,9 @@
 {{- if .longName }}
 {{- $resourceName = printf "%s-%s" $robustName (include "robustName" .ingress.host) -}}
 {{- end }}
+{{- if .ingress.name }}
+{{- $resourceName = include "robustName" .ingress.name -}}
+{{- end }}
 {{- $svcPort := .root.Values.svcPort -}}
 {{- $containerPort := .root.Values.containerPort -}}
 

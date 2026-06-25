@@ -37,10 +37,13 @@ vars:
   VAR_1: "value 1"
   VAR_2: "value 2"
 ingress:
+  name: my-app-public
   annotations:
     kubernetes.io/ingress.class: nginx
   host: my-app.mycompany.com
 ```
+
+When you need multiple Ingress resources for the same host (for example keeping `/metrics` private), use `ingresses` with explicit `name` values so each resource is unique.
 
 
 ### Alternative: using an OCI repository

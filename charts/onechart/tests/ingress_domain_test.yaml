@@ -65,6 +65,15 @@ tests:
       - equal:
           path: spec.ingressClassName
           value: nginx
+  - it: Should set Ingress name if provided
+    set:
+      ingress:
+        name: metrics-private
+        host: chart-example.local
+    asserts:
+      - equal:
+          path: metadata.name
+          value: metrics-private
   - it: Should generate multiple ingresses
     set:
       ingresses:
@@ -112,6 +121,60 @@ tests:
             - hosts:
                 - chart-example.local
               secretName: tls-release-name-chart-example-local
+  - it: Should support multiple ingresses for the same host with explicit names
+    set:
+      ingresses:
+        - name: app-public
+          host: chart-example.local
+        - name: app-metrics-private
+          host: chart-example.local
+          paths:
+            - path: /metrics
+              pathType: Exact
+    asserts:
+      - hasDocuments:
+          count: 2
+      - documentIndex: 0
+        equal:
+          path: metadata.name
+          value: app-public
+      - documentIndex: 1
+        equal:
+          path: metadata.name
+          value: app-metrics-private
+  - it: Should support same-host ingresses with different classes and annotations
+    set:
+      ingresses:
+        - name: app-public
+          host: chart-example.local
+          ingressClassName: public-nginx
+        - name: app-metrics-private
+          host: chart-example.local
+          ingressClassName: private-nginx
+          annotations:
+            nginx.ingress.kubernetes.io/whitelist-source-range: 10.0.0.0/8
+          paths:
+            - path: /metrics
+              pathType: Exact
+    asserts:
+      - hasDocuments:
+          count: 2
+      - documentIndex: 0
+        equal:
+          path: spec.ingressClassName
+          value: public-nginx
+      - documentIndex: 0
+        notExists:
+          path: metadata.annotations
+      - documentIndex: 1
+        equal:
+          path: spec.ingressClassName
+          value: private-nginx
+      - documentIndex: 1
+        equal:
+          path: metadata.annotations
+          value:
+            nginx.ingress.kubernetes.io/whitelist-source-range: 10.0.0.0/8
   - it: Should set Ingress secret name if provided
     set:
       ingress:

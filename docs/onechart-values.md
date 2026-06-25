@@ -68,6 +68,7 @@ Each entry requires a `name` and `containerPort`. Optional fields: `svcPort`, `n
 ### Single ingress
 ```yaml
 ingress:
+  name: myapp-public
   host: myapp.example.com
   ingressClassName: nginx    # defaults to "kong" if omitted
   tlsEnabled: true
@@ -77,6 +78,7 @@ ingress:
 
 | Field | Default | Description |
 |-------|---------|-------------|
+| `ingress.name` | `<release-name>` | Optional explicit name for the Ingress resource |
 | `ingress.host` |  | Hostname where the app will be accessible |
 | `ingress.ingressClassName` | `kong` | Ingress controller class |
 | `ingress.tlsEnabled` | `false` | Enable TLS |
@@ -109,12 +111,19 @@ ingress:
       pathType: Exact
 ```
 
-### Multiple ingresses (multiple hosts)
+### Multiple ingresses (multiple hosts, or same host with different names)
 ```yaml
 ingresses:
-  - host: myapp.example.com
+  - name: myapp-public
+    host: myapp.example.com
     tlsEnabled: true
-  - host: myapp-internal.corp.example.com
+  - name: myapp-metrics-private
+    host: myapp.example.com
+    paths:
+      - path: /metrics
+        pathType: Exact
+  - name: myapp-internal
+    host: myapp-internal.corp.example.com
     ingressClassName: nginx
 ```
 

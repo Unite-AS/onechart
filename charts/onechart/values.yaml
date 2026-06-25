@@ -4,6 +4,7 @@ image:
   pullPolicy: IfNotPresent
 
 # ingress:
+#   name: myapp-public
 #   host: chart-example.local
 #   ingressClassName: nginx
 #   tlsEnabled: true
