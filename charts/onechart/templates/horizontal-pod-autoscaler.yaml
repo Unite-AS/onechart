@@ -11,8 +11,13 @@ spec:
   {{- end }}
   maxReplicas: {{ .Values.autoscale.maxReplicas }}
   scaleTargetRef:
+    {{- if and .Values.rollout .Values.rollout.enabled }}
+    apiVersion: argoproj.io/v1alpha1
+    kind: Rollout
+    {{- else }}
     apiVersion: apps/v1
     kind: Deployment
+    {{- end }}
     name: {{ template "robustName" .Release.Name }}
   metrics:
     {{- if and (.Values.autoscale.targetCPUUtilizationPercentage) (.Values.resources) (.Values.resources.limits) (.Values.resources.limits.cpu) }}

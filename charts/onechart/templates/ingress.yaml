@@ -10,6 +10,7 @@
 {{- end }}
 {{- $svcPort := .root.Values.svcPort -}}
 {{- $containerPort := .root.Values.containerPort -}}
+{{- $activeServiceName := include "onechart.activeServiceName" .root -}}
 
 ---
 apiVersion: networking.k8s.io/v1
@@ -56,7 +57,7 @@ spec:
             pathType: {{ .ingress.pathType | default "Prefix" | quote }}
             backend:
               service:
-                name: {{ $robustName }}
+                name: {{ $activeServiceName }}
                 port:
                   number: {{ if $svcPort }}{{ $svcPort }}{{ else }}{{ $containerPort }}{{ end }}
         {{- else }}
@@ -66,7 +67,7 @@ spec:
             pathType: {{ .pathType | default "Prefix" | quote }}
             backend:
               service:
-                name: {{ $robustName }}
+                name: {{ $activeServiceName }}
                 port:
                   number: {{ if $svcPort }}{{ $svcPort }}{{ else }}{{ $containerPort }}{{ end }}
           {{- end }}

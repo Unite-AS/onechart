@@ -70,3 +70,20 @@ Create robustName that can be used as Kubernetes resource name, and as subdomain
 {{- define "robustName" -}}
 {{ regexReplaceAll "\\W+" . "-" | replace "_" "-" | lower | trunc 63 | trimSuffix "-" }}
 {{- end }}
+
+{{- define "onechart.activeServiceName" -}}
+{{- if and .Values.rollout .Values.rollout.enabled .Values.rollout.blueGreen .Values.rollout.blueGreen.activeService -}}
+{{- include "robustName" .Values.rollout.blueGreen.activeService -}}
+{{- else -}}
+{{- include "robustName" .Release.Name -}}
+{{- end -}}
+{{- end }}
+
+{{- define "onechart.previewServiceName" -}}
+{{- if and .Values.rollout .Values.rollout.enabled .Values.rollout.blueGreen .Values.rollout.blueGreen.previewService -}}
+{{- include "robustName" .Values.rollout.blueGreen.previewService -}}
+{{- else -}}
+{{- include "robustName" (printf "%s-preview" (include "robustName" .Release.Name)) -}}
+{{- end -}}
+{{- end }}
+

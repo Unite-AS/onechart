@@ -158,6 +158,58 @@
         1
       ]
     },
+    "rollout": {
+      "$id": "#/properties/rollout",
+      "type": "object",
+      "title": "Argo Rollout",
+      "description": "Enable Argo Rollouts BlueGreen deployment mode.",
+      "default": {
+        "enabled": false,
+        "blueGreen": {
+          "activeService": "",
+          "previewService": "",
+          "autoPromotionEnabled": true
+        }
+      },
+      "required": [],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Enable Argo Rollout",
+          "default": false
+        },
+        "blueGreen": {
+          "type": "object",
+          "title": "BlueGreen Strategy",
+          "default": {
+            "activeService": "",
+            "previewService": "",
+            "autoPromotionEnabled": true
+          },
+          "required": [],
+          "properties": {
+            "activeService": {
+              "type": "string",
+              "title": "Active Service Name",
+              "description": "Optional override for the active service name.",
+              "default": ""
+            },
+            "previewService": {
+              "type": "string",
+              "title": "Preview Service Name",
+              "description": "Optional override for the preview service name.",
+              "default": ""
+            },
+            "autoPromotionEnabled": {
+              "type": "boolean",
+              "title": "Auto Promotion",
+              "description": "Automatically promote preview replicas to active.",
+              "default": true
+            }
+          }
+        }
+      }
+    },
     "podDisruptionBudgetEnabled": {
       "$id": "#/properties/podDisruptionBudgetEnabled",
       "type": "boolean",

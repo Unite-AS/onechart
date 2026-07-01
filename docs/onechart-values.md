@@ -514,6 +514,19 @@ strategy: RollingUpdate  # or Recreate
 If omitted and volumes are present with a single replica, `Recreate` is used automatically to avoid volume attachment conflicts.
 
 
+## Argo Rollouts (BlueGreen)
+```yaml
+rollout:
+  enabled: true
+  blueGreen:
+    activeService: ""         # defaults to release name
+    previewService: ""        # defaults to <release-name>-preview
+    autoPromotionEnabled: true
+```
+
+When enabled, the chart renders an Argo `Rollout` (`argoproj.io/v1alpha1`) instead of a `Deployment`, and creates a preview `Service` for BlueGreen traffic switching.
+
+
 ## Service Account
 ```yaml
 serviceAccount: my-service-account

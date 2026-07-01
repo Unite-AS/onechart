@@ -1,6 +1,6 @@
-{{- if not (and .Values.rollout .Values.rollout.enabled) }}
-apiVersion: apps/v1
-kind: Deployment
+{{- if and .Values.rollout .Values.rollout.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: {{ template "robustName" .Release.Name }}
   namespace: {{ .Release.Namespace }}
@@ -21,16 +21,11 @@ spec:
   selector:
     matchLabels:
       {{- include "helm-chart.selectorLabels" . | nindent 6 }}
-  {{- $singleReplica := eq (.Values.replicas | int64) 1 }}
-  {{- $strategyNotDefined := not .Values.strategy }}
-  {{- if and (and .Values.volumes $singleReplica) $strategyNotDefined}}
   strategy:
-    type: Recreate
-  {{- end }}
-  {{- if .Values.strategy }}
-  strategy:
-    type: {{ .Values.strategy }}
-  {{- end }}
+    blueGreen:
+      activeService: {{ include "onechart.activeServiceName" . }}
+      previewService: {{ include "onechart.previewServiceName" . }}
+      autoPromotionEnabled: {{ default true .Values.rollout.blueGreen.autoPromotionEnabled }}
   template:
     metadata:
       annotations:
@@ -55,3 +50,4 @@ spec:
       {{- $podSpec := mergeOverwrite $podSpecTpl .Values.podSpec }}
       {{- toYaml $podSpec | nindent 6 }}
 {{- end }}
+

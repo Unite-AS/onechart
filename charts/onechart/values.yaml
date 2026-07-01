@@ -19,6 +19,13 @@ image:
 
 replicas: 1
 
+rollout:
+  enabled: false
+  blueGreen:
+    activeService: ""
+    previewService: ""
+    autoPromotionEnabled: true
+
 nameOverride: ""
 fullnameOverride: ""
 

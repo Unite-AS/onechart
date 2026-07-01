@@ -1,7 +1,9 @@
+{{- $defaultServiceName := include "robustName" .Release.Name -}}
+{{- $activeServiceName := include "onechart.activeServiceName" . -}}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "robustName" .Release.Name }}
+  name: {{ $defaultServiceName }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "helm-chart.labels" . | nindent 4 }}
@@ -84,3 +86,62 @@ spec:
     {{- end }}
   selector:
     {{- include "helm-chart.selectorLabels" . | nindent 4 }}
+
+{{- if and .Values.rollout .Values.rollout.enabled }}
+{{- if ne $activeServiceName $defaultServiceName }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $activeServiceName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "helm-chart.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    {{- if not .Values.ports }}
+    - port: {{ if .Values.svcPort }}{{ .Values.svcPort }}{{ else }}{{ .Values.containerPort }}{{ end }}
+      targetPort: http
+      protocol: TCP
+      name: http
+    {{- else }}
+    {{- range .Values.ports }}
+    - name: {{ .name }}
+      port: {{ if .svcPort }}{{ .svcPort }}{{ else }}{{ .containerPort }}{{ end }}
+      targetPort: {{ .name }}
+      protocol: {{ if .protocol }}{{ .protocol }}{{ else }}TCP{{ end }}
+    {{- end }}
+    {{- end }}
+  selector:
+    {{- include "helm-chart.selectorLabels" . | nindent 4 }}
+{{- end }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "onechart.previewServiceName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "helm-chart.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    {{- if not .Values.ports }}
+    - port: {{ if .Values.svcPort }}{{ .Values.svcPort }}{{ else }}{{ .Values.containerPort }}{{ end }}
+      targetPort: http
+      protocol: TCP
+      name: http
+    {{- else }}
+    {{- range .Values.ports }}
+    - name: {{ .name }}
+      port: {{ if .svcPort }}{{ .svcPort }}{{ else }}{{ .containerPort }}{{ end }}
+      targetPort: {{ .name }}
+      protocol: {{ if .protocol }}{{ .protocol }}{{ else }}TCP{{ end }}
+    {{- end }}
+    {{- end }}
+  selector:
+    {{- include "helm-chart.selectorLabels" . | nindent 4 }}
+{{- end }}
+

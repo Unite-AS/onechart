@@ -1,0 +1,125 @@
+suite: test argo rollout bluegreen
+templates:
+  - configmap.yaml
+  - deployment.yaml
+  - rollout.yaml
+  - service.yaml
+  - ingress.yaml
+  - horizontal-pod-autoscaler.yaml
+tests:
+  - it: Should render Rollout and skip Deployment when rollout is enabled
+    set:
+      rollout:
+        enabled: true
+    asserts:
+      - template: rollout.yaml
+        hasDocuments:
+          count: 1
+      - template: rollout.yaml
+        documentIndex: 0
+        equal:
+          path: kind
+          value: Rollout
+      - template: deployment.yaml
+        hasDocuments:
+          count: 0
+
+  - it: Should use default active and preview services
+    set:
+      rollout:
+        enabled: true
+    asserts:
+      - template: rollout.yaml
+        documentIndex: 0
+        equal:
+          path: spec.strategy.blueGreen.activeService
+          value: release-name
+      - template: rollout.yaml
+        documentIndex: 0
+        equal:
+          path: spec.strategy.blueGreen.previewService
+          value: release-name-preview
+      - template: service.yaml
+        hasDocuments:
+          count: 2
+      - template: service.yaml
+        documentIndex: 0
+        equal:
+          path: metadata.name
+          value: release-name
+      - template: service.yaml
+        documentIndex: 1
+        equal:
+          path: metadata.name
+          value: release-name-preview
+
+  - it: Should support custom active and preview service names
+    set:
+      rollout:
+        enabled: true
+        blueGreen:
+          activeService: my-active
+          previewService: my-preview
+      ingress:
+        host: chart-example.local
+    asserts:
+      - template: rollout.yaml
+        documentIndex: 0
+        equal:
+          path: spec.strategy.blueGreen.activeService
+          value: my-active
+      - template: rollout.yaml
+        documentIndex: 0
+        equal:
+          path: spec.strategy.blueGreen.previewService
+          value: my-preview
+      - template: service.yaml
+        hasDocuments:
+          count: 3
+      - template: service.yaml
+        documentIndex: 0
+        equal:
+          path: metadata.name
+          value: release-name
+      - template: service.yaml
+        documentIndex: 1
+        equal:
+          path: metadata.name
+          value: my-active
+      - template: service.yaml
+        documentIndex: 2
+        equal:
+          path: metadata.name
+          value: my-preview
+      - template: ingress.yaml
+        documentIndex: 0
+        equal:
+          path: spec.rules[0].http.paths[0].backend.service.name
+          value: my-active
+
+  - it: Should target Rollout in HPA when rollout is enabled
+    set:
+      rollout:
+        enabled: true
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+      autoscale:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 10
+        targetCPUUtilizationPercentage: 70
+    asserts:
+      - template: horizontal-pod-autoscaler.yaml
+        documentIndex: 0
+        equal:
+          path: spec.scaleTargetRef.apiVersion
+          value: argoproj.io/v1alpha1
+      - template: horizontal-pod-autoscaler.yaml
+        documentIndex: 0
+        equal:
+          path: spec.scaleTargetRef.kind
+          value: Rollout
+
+
