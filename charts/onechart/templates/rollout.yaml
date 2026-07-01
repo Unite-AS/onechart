@@ -25,7 +25,7 @@ spec:
     blueGreen:
       activeService: {{ include "onechart.activeServiceName" . }}
       previewService: {{ include "onechart.previewServiceName" . }}
-      autoPromotionEnabled: {{ default true .Values.rollout.blueGreen.autoPromotionEnabled }}
+      autoPromotionEnabled: {{ ternary .Values.rollout.blueGreen.autoPromotionEnabled true (and .Values.rollout.blueGreen (hasKey .Values.rollout.blueGreen "autoPromotionEnabled")) }}
   template:
     metadata:
       annotations:

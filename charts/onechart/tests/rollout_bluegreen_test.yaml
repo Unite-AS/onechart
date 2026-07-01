@@ -97,6 +97,30 @@ tests:
           path: spec.rules[0].http.paths[0].backend.service.name
           value: my-active
 
+  - it: Should default autoPromotionEnabled to true
+    set:
+      rollout:
+        enabled: true
+    asserts:
+      - template: rollout.yaml
+        documentIndex: 0
+        equal:
+          path: spec.strategy.blueGreen.autoPromotionEnabled
+          value: true
+
+  - it: Should allow disabling autoPromotionEnabled
+    set:
+      rollout:
+        enabled: true
+        blueGreen:
+          autoPromotionEnabled: false
+    asserts:
+      - template: rollout.yaml
+        documentIndex: 0
+        equal:
+          path: spec.strategy.blueGreen.autoPromotionEnabled
+          value: false
+
   - it: Should target Rollout in HPA when rollout is enabled
     set:
       rollout:
