@@ -110,13 +110,19 @@ spec:
 
 {{- with .Values.ingress }}
   {{- template "onechart.ingress" (dict "root" $ "ingress" .) }}
-  {{- if and $.Values.rollout $.Values.rollout.enabled }}
-    {{- $previewServiceName := include "onechart.previewServiceName" $ -}}
-    {{- if and $.Values.rollout.blueGreen $.Values.rollout.blueGreen.previewIngress $.Values.rollout.blueGreen.previewIngress.private }}
-      {{- template "onechart.ingress" (dict "root" $ "ingress" . "nameSuffix" "preview" "serviceName" $previewServiceName "host" $previewServiceName "tlsHost" $previewServiceName "ingressClassName" "tailscale" "annotations" (dict "tailscale.com/hostname" $previewServiceName "tailscale.com/http-redirect" "true") "tlsEnabled" true "omitTlsSecretName" true "omitRuleHost" true) }}
-    {{- else }}
-      {{- template "onechart.ingress" (dict "root" $ "ingress" . "nameSuffix" "preview" "serviceName" $previewServiceName "host" (regexReplaceAll "^[^.]*" .host $previewServiceName) "forceDefaultAnnotations" true) }}
-    {{- end }}
+{{- end }}
+
+{{- if and .Values.rollout .Values.rollout.enabled }}
+  {{- $previewServiceName := include "onechart.previewServiceName" . -}}
+  {{- $previewIngressPrivate := true -}}
+  {{- if and .Values.rollout.blueGreen .Values.rollout.blueGreen.previewIngress (hasKey .Values.rollout.blueGreen.previewIngress "private") -}}
+    {{- $previewIngressPrivate = .Values.rollout.blueGreen.previewIngress.private -}}
+  {{- end }}
+  {{- $previewIngress := .Values.ingress | default (dict) -}}
+  {{- if $previewIngressPrivate }}
+    {{- template "onechart.ingress" (dict "root" $ "ingress" $previewIngress "nameSuffix" "preview" "serviceName" $previewServiceName "host" $previewServiceName "tlsHost" $previewServiceName "ingressClassName" "tailscale" "annotations" (dict "tailscale.com/hostname" $previewServiceName "tailscale.com/http-redirect" "true") "tlsEnabled" true "omitTlsSecretName" true "omitRuleHost" true) }}
+  {{- else if and .Values.ingress .Values.ingress.host }}
+    {{- template "onechart.ingress" (dict "root" $ "ingress" $previewIngress "nameSuffix" "preview" "serviceName" $previewServiceName "host" (regexReplaceAll "^[^.]*" .Values.ingress.host $previewServiceName) "forceDefaultAnnotations" true) }}
   {{- end }}
 {{- end }}
 
