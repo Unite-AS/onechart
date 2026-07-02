@@ -25,6 +25,8 @@ rollout:
     activeService: ""
     previewService: ""
     autoPromotionEnabled: true
+    previewIngress:
+      private: true
 
 nameOverride: ""
 fullnameOverride: ""
@@ -130,4 +132,3 @@ postgresqlDatabase:
   highAvailability:
     mode: ""
     standbyZone: ""
-

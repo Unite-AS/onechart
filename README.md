@@ -45,6 +45,16 @@ ingress:
 
 When you need multiple Ingress resources for the same host (for example keeping `/metrics` private), use `ingresses` with explicit `name` values so each resource is unique.
 
+For rollout blue/green preview traffic, OneChart also creates a preview ingress when `rollout.enabled=true` and `ingress.host` is set. You can make that preview ingress private (Tailscale) instead of public (Kong):
+
+```yaml
+rollout:
+  enabled: true
+  blueGreen:
+    previewIngress:
+      private: true
+```
+
 
 ### Alternative: using an OCI repository
 You can also template and install onechart from an OCI repository as follows:

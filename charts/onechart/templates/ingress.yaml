@@ -8,9 +8,43 @@
 {{- if .ingress.name }}
 {{- $resourceName = include "robustName" .ingress.name -}}
 {{- end }}
+{{- if .nameSuffix }}
+{{- $resourceName = printf "%s-%s" $resourceName (include "robustName" .nameSuffix) -}}
+{{- end }}
 {{- $svcPort := .root.Values.svcPort -}}
 {{- $containerPort := .root.Values.containerPort -}}
 {{- $activeServiceName := include "onechart.activeServiceName" .root -}}
+{{- $serviceName := $activeServiceName -}}
+{{- if .serviceName }}
+{{- $serviceName = .serviceName -}}
+{{- end }}
+{{- $host := .ingress.host -}}
+{{- if .host }}
+{{- $host = .host -}}
+{{- end }}
+{{- $tlsHost := $host -}}
+{{- if .tlsHost }}
+{{- $tlsHost = .tlsHost -}}
+{{- end }}
+{{- $annotations := .ingress.annotations -}}
+{{- if .annotations }}
+{{- $annotations = .annotations -}}
+{{- end }}
+{{- $ingressClassName := .ingress.ingressClassName -}}
+{{- if .ingressClassName }}
+{{- $ingressClassName = .ingressClassName -}}
+{{- end }}
+{{- if not $ingressClassName }}
+{{- $ingressClassName = "kong" -}}
+{{- end }}
+{{- $tlsEnabled := default false .ingress.tlsEnabled -}}
+{{- if hasKey . "tlsEnabled" }}
+{{- $tlsEnabled = .tlsEnabled -}}
+{{- end }}
+{{- $renderRuleHost := true -}}
+{{- if .omitRuleHost }}
+{{- $renderRuleHost = false -}}
+{{- end }}
 
 ---
 apiVersion: networking.k8s.io/v1
@@ -20,10 +54,10 @@ metadata:
   namespace: {{ .root.Release.Namespace }}
   labels:
     {{- include "helm-chart.labels" .root | nindent 4 }}
-  {{- if or (or (or .root.Values.gitSha) .ingress.annotations) .root.Values.gitRepository }}
+  {{- if or (or (or (or .root.Values.gitSha) $annotations) .root.Values.gitRepository) .forceDefaultAnnotations }}
   annotations:
-    {{- if .ingress.annotations }}
-      {{- toYaml .ingress.annotations | nindent 4 }}
+    {{- if $annotations }}
+      {{- toYaml $annotations | nindent 4 }}
     {{- else}}
     konghq.com/strip-path: "true"
     konghq.com/https-redirect-status-code: "301"
@@ -37,19 +71,19 @@ metadata:
     {{- end }}
   {{- end }}
 spec:
-  {{- if .ingress.ingressClassName }}
-  ingressClassName: {{ .ingress.ingressClassName }}
-  {{- else}}
-  ingressClassName: kong
-  {{- end }}
-  {{- if default false .ingress.tlsEnabled }}
+  ingressClassName: {{ $ingressClassName }}
+  {{- if $tlsEnabled }}
   tls:
     - hosts:
-        - {{ .ingress.host | quote }}
+        - {{ $tlsHost | quote }}
+      {{- if not .omitTlsSecretName }}
       secretName: {{ .ingress.secretName | default (printf "tls-%s" $resourceName) }}
+      {{- end }}
   {{- end }}
   rules:
-    - host: {{ .ingress.host | quote }}
+    - {{- if $renderRuleHost }}
+      host: {{ $host | quote }}
+      {{- end }}
       http:
         {{- if not .ingress.paths }}
         paths:
@@ -57,7 +91,7 @@ spec:
             pathType: {{ .ingress.pathType | default "Prefix" | quote }}
             backend:
               service:
-                name: {{ $activeServiceName }}
+                name: {{ $serviceName }}
                 port:
                   number: {{ if $svcPort }}{{ $svcPort }}{{ else }}{{ $containerPort }}{{ end }}
         {{- else }}
@@ -67,7 +101,7 @@ spec:
             pathType: {{ .pathType | default "Prefix" | quote }}
             backend:
               service:
-                name: {{ $activeServiceName }}
+                name: {{ $serviceName }}
                 port:
                   number: {{ if $svcPort }}{{ $svcPort }}{{ else }}{{ $containerPort }}{{ end }}
           {{- end }}
@@ -76,6 +110,14 @@ spec:
 
 {{- with .Values.ingress }}
   {{- template "onechart.ingress" (dict "root" $ "ingress" .) }}
+  {{- if and $.Values.rollout $.Values.rollout.enabled }}
+    {{- $previewServiceName := include "onechart.previewServiceName" $ -}}
+    {{- if and $.Values.rollout.blueGreen $.Values.rollout.blueGreen.previewIngress $.Values.rollout.blueGreen.previewIngress.private }}
+      {{- template "onechart.ingress" (dict "root" $ "ingress" . "nameSuffix" "preview" "serviceName" $previewServiceName "host" $previewServiceName "tlsHost" $previewServiceName "ingressClassName" "tailscale" "annotations" (dict "tailscale.com/hostname" $previewServiceName "tailscale.com/http-redirect" "true") "tlsEnabled" true "omitTlsSecretName" true "omitRuleHost" true) }}
+    {{- else }}
+      {{- template "onechart.ingress" (dict "root" $ "ingress" . "nameSuffix" "preview" "serviceName" $previewServiceName "host" (regexReplaceAll "^[^.]*" .host $previewServiceName) "forceDefaultAnnotations" true) }}
+    {{- end }}
+  {{- end }}
 {{- end }}
 
 {{- range .Values.ingresses }}

@@ -60,6 +60,8 @@ tests:
         blueGreen:
           activeService: my-active
           previewService: my-preview
+          previewIngress:
+            private: false
       ingress:
         host: chart-example.local
     asserts:
@@ -92,10 +94,119 @@ tests:
           path: metadata.name
           value: my-preview
       - template: ingress.yaml
+        hasDocuments:
+          count: 2
+      - template: ingress.yaml
         documentIndex: 0
         equal:
           path: spec.rules[0].http.paths[0].backend.service.name
           value: my-active
+      - template: ingress.yaml
+        documentIndex: 1
+        equal:
+          path: spec.rules[0].host
+          value: my-preview.local
+      - template: ingress.yaml
+        documentIndex: 1
+        equal:
+          path: spec.rules[0].http.paths[0].backend.service.name
+          value: my-preview
+
+  - it: Should render public preview ingress when explicitly enabled
+    set:
+      rollout:
+        enabled: true
+        blueGreen:
+          previewIngress:
+            private: false
+      ingress:
+        host: chart-example.local
+    asserts:
+      - template: ingress.yaml
+        hasDocuments:
+          count: 2
+      - template: ingress.yaml
+        documentIndex: 0
+        equal:
+          path: spec.rules[0].host
+          value: chart-example.local
+      - template: ingress.yaml
+        documentIndex: 0
+        equal:
+          path: spec.rules[0].http.paths[0].backend.service.name
+          value: release-name
+      - template: ingress.yaml
+        documentIndex: 1
+        equal:
+          path: metadata.name
+          value: release-name-preview
+      - template: ingress.yaml
+        documentIndex: 1
+        equal:
+          path: spec.ingressClassName
+          value: kong
+      - template: ingress.yaml
+        documentIndex: 1
+        equal:
+          path: metadata.annotations
+          value:
+            konghq.com/strip-path: "true"
+            konghq.com/https-redirect-status-code: "301"
+            konghq.com/protocols: https
+      - template: ingress.yaml
+        documentIndex: 1
+        equal:
+          path: spec.rules[0].host
+          value: release-name-preview.local
+      - template: ingress.yaml
+        documentIndex: 1
+        equal:
+          path: spec.rules[0].http.paths[0].backend.service.name
+          value: release-name-preview
+
+  - it: Should default preview ingress to private tailscale
+    set:
+      rollout:
+        enabled: true
+      ingress:
+        host: chart-example.local
+    asserts:
+      - template: ingress.yaml
+        hasDocuments:
+          count: 2
+      - template: ingress.yaml
+        documentIndex: 1
+        equal:
+          path: metadata.name
+          value: release-name-preview
+      - template: ingress.yaml
+        documentIndex: 1
+        equal:
+          path: spec.ingressClassName
+          value: tailscale
+      - template: ingress.yaml
+        documentIndex: 1
+        equal:
+          path: metadata.annotations
+          value:
+            tailscale.com/hostname: release-name-preview
+            tailscale.com/http-redirect: "true"
+      - template: ingress.yaml
+        documentIndex: 1
+        equal:
+          path: spec.tls
+          value:
+            - hosts:
+                - release-name-preview
+      - template: ingress.yaml
+        documentIndex: 1
+        notExists:
+          path: spec.rules[0].host
+      - template: ingress.yaml
+        documentIndex: 1
+        equal:
+          path: spec.rules[0].http.paths[0].backend.service.name
+          value: release-name-preview
 
   - it: Should default autoPromotionEnabled to true
     set:
@@ -145,5 +256,3 @@ tests:
         equal:
           path: spec.scaleTargetRef.kind
           value: Rollout
-
-
