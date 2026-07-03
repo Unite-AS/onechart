@@ -243,6 +243,65 @@ tests:
           path: spec.rules[0].http.paths[0].backend.service.name
           value: release-name-preview
 
+  - it: Should render one public preview ingress for ingresses list
+    set:
+      rollout:
+        enabled: true
+        blueGreen:
+          previewIngress:
+            private: false
+      ingresses:
+        - host: www.unite.as
+          annotations:
+            konghq.com/https-redirect-status-code: "301"
+            konghq.com/protocols: "https"
+            konghq.com/strip-path: "true"
+        - host: unite.as
+          annotations:
+            konghq.com/https-redirect-status-code: "301"
+            konghq.com/protocols: "https"
+            konghq.com/strip-path: "true"
+        - host: www.unite.as
+          name: www-unite-as-deny-public-metrics
+          annotations:
+            konghq.com/plugins: deny-metrics
+            konghq.com/protocols: https
+          paths:
+            - path: /api/metrics
+              pathType: Prefix
+        - host: unite.as
+          name: unite-as-deny-public-metrics
+          annotations:
+            konghq.com/plugins: deny-metrics
+            konghq.com/protocols: https
+          paths:
+            - path: /api/metrics
+              pathType: Prefix
+    asserts:
+      - template: ingress.yaml
+        hasDocuments:
+          count: 5
+      - template: ingress.yaml
+        documentIndex: 0
+        equal:
+          path: metadata.name
+          value: release-name-preview
+      - template: ingress.yaml
+        documentIndex: 0
+        equal:
+          path: spec.rules[0].http.paths[0].backend.service.name
+          value: release-name-preview
+      - template: ingress.yaml
+        documentIndex: 0
+        equal:
+          path: spec.rules[0].host
+          value: release-name-preview.unite.as
+      - template: ingress.yaml
+        documentIndex: 3
+        equal:
+          path: metadata.name
+          value: www-unite-as-deny-public-metrics
+
   - it: Should default autoPromotionEnabled to true
     set:
       rollout:
