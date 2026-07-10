@@ -18,7 +18,7 @@ helm repo add onechart https://unite-as.github.io/onechart/
 Set your image name and version, the boilerplate is generated.
 
 ```bash
-helm template my-release Unite-AS/onechart \
+helm template my-release onechart/onechart \
   --set image.repository=nginx \
   --set image.tag=1.19.3
 ```
@@ -27,7 +27,7 @@ The example below deploys your application image, sets environment variables and
 
 ```bash
 helm repo add onechart https://unite-as.github.io/onechart/
-helm template my-release Unite-AS/onechart -f values.yaml
+helm template my-release onechart/onechart -f values.yaml
 
 # values.yaml
 image:

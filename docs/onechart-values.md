@@ -98,7 +98,8 @@ ingress:
     password: secret
 ```
 
-Creates an htpasswd-based Kubernetes Secret and wires up Nginx basic auth.
+Creates an htpasswd-based Kubernetes Secret (`<release>-basic-auth`).  
+To enforce auth in Nginx, add the standard nginx ingress auth annotations to `ingress.annotations`.
 
 ### Multiple paths on one host
 ```yaml
@@ -155,6 +156,19 @@ secretName: my-existing-secret
 ```
 
 All keys from the named secret are injected as environment variables.
+
+### Import env vars from existing Secrets/ConfigMaps
+```yaml
+existingSecrets:
+  - name: app-runtime-secrets
+    optional: false
+
+existingConfigMaps:
+  - name: app-runtime-config
+    optional: true
+```
+
+Adds extra `envFrom` refs on the container.
 
 ### Sealed Secrets (encrypted at rest)
 ```yaml
@@ -522,9 +536,14 @@ rollout:
     activeService: ""         # defaults to release name
     previewService: ""        # defaults to <release-name>-preview
     autoPromotionEnabled: true
+    previewIngress:
+      private: true           # default true (Tailscale preview ingress)
 ```
 
 When enabled, the chart renders an Argo `Rollout` (`argoproj.io/v1alpha1`) instead of a `Deployment`, and creates a preview `Service` for BlueGreen traffic switching.
+
+With `previewIngress.private: true`, the preview ingress uses Tailscale.  
+Set `previewIngress.private: false` to render a public preview ingress based on your regular ingress host.
 
 
 ## Service Account
@@ -613,27 +632,29 @@ extraDeploy: |
 Raw YAML string rendered verbatim alongside the other chart resources. Useful for deploying additional Kubernetes resources that are not supported natively by the chart.
 
 ## ExternalSecret (external-secrets.io/v1)
-Use this to render an independent `ExternalSecret` resource.
+Use this to render one or more independent `ExternalSecret` resources.
 
 ```yaml
-secretName: app-secrets
-
-externalSecret:
-  enabled: true
-  # optional: defaults to secretName when omitted
-  key: app-secrets-key
-  refreshInterval: 1h0m0s
-  secretStoreRef:
-    name: azure-key-vault
-    kind: ClusterSecretStore
+externalSecrets:
+  - name: app-secrets
+    # optional: defaults to item.name when omitted
+    key: app-secrets-key
+    refreshInterval: 1h0m0s
+    secretStoreRef:
+      name: azure-key-vault
+      kind: ClusterSecretStore
+  - name: db-secrets
+    secretStoreRef:
+      name: team-kv
 ```
 
 | Field | Required | Notes |
 |-------|----------|-------|
-| `externalSecret.enabled` | No | Must be `true` to render the resource |
-| `secretName` | Yes (when `externalSecret.enabled=true`) | Used as `ExternalSecret.metadata.name` |
-| `externalSecret.key` | No | Used as `ExternalSecret.spec.dataFrom[0].extract.key`; defaults to `secretName` |
-| `externalSecret.refreshInterval` | No | Defaults to `1h0m0s` |
-| `externalSecret.secretStoreRef.name` | No | Defaults to `azure-key-vault` |
-| `externalSecret.secretStoreRef.kind` | No | Defaults to `ClusterSecretStore` |
+| `externalSecrets` | No | List of ExternalSecret definitions |
+| `externalSecrets[].name` | Yes | Used as `ExternalSecret.metadata.name` |
+| `externalSecrets[].key` | No | Used as `ExternalSecret.spec.dataFrom[0].extract.key`; defaults to `externalSecrets[].name` |
+| `externalSecrets[].refreshInterval` | No | Defaults to `1h0m0s` |
+| `externalSecrets[].secretStoreRef.name` | No | Defaults to `azure-key-vault` |
+| `externalSecrets[].secretStoreRef.kind` | No | Defaults to `ClusterSecretStore` |
 
+Legacy single-resource configuration via `externalSecret.enabled` + `secretName` is still supported for backwards compatibility.

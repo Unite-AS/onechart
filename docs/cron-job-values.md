@@ -26,7 +26,7 @@ image:
 schedule: "*/5 * * * *"
 ```
 
-Standard 5-field cron expression controlling when the job runs. Uses the cluster's local timezone.
+Standard 5-field cron expression controlling when the job runs.
 
 **Common examples:**
 
@@ -227,35 +227,6 @@ affinity:
 Raw Kubernetes affinity spec for fine-grained placement control.
 
 
-## Security Context
-### Pod-level security context
-```yaml
-podSecurityContext:
-  fsGroup: 999
-  runAsUser: 1000
-  runAsGroup: 1000
-  runAsNonRoot: true
-```
-
-Sets the UID/GID for all processes in the pod and the filesystem group for volume ownership.
-
-**Defaults:**
-- `runAsNonRoot: true`
-- `runAsUser: 621`
-- `runAsGroup: 999`
-
-### Container-level security context
-```yaml
-securityContext:
-  runAsNonRoot: true
-  runAsUser: 1000
-  allowPrivilegeEscalation: false
-  readOnlyRootFilesystem: false  # may need to be false for jobs that write to /tmp
-```
-
-Overrides applied to the job container only.
-
-
 ## Pod Annotations
 ```yaml
 podAnnotations:
@@ -274,15 +245,6 @@ imagePullSecrets:
 ```
 
 Names of Kubernetes Secrets of type `kubernetes.io/dockerconfigjson` used to authenticate against private container registries.
-
-
-## Name Overrides
-```yaml
-nameOverride: ""
-fullnameOverride: ""
-```
-
-Override the chart name or the fully-qualified name used in Kubernetes resource names.
 
 
 ## Full Example
@@ -332,10 +294,4 @@ tolerations:
     operator: "Equal"
     value: "spot"
     effect: "NoSchedule"
-
-podSecurityContext:
-  fsGroup: 999
-  runAsUser: 1000
-  runAsGroup: 1000
-  runAsNonRoot: true
 ```
