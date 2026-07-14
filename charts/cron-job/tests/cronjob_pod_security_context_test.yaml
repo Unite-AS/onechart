@@ -1,0 +1,31 @@
+suite: test cron job
+templates:
+  - cronJob.yaml
+tests:
+  - it: Should set default pod security context
+    asserts:
+      - template: cronJob.yaml
+        documentIndex: 0
+        equal:
+          path: spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot
+          value: true
+      - template: cronJob.yaml
+        documentIndex: 0
+        equal:
+          path: spec.jobTemplate.spec.template.spec.securityContext.runAsUser
+          value: 621
+  - it: Should merge pod security context with defaults
+    set:
+      podSecurityContext:
+        runAsNonRoot: false
+    asserts:
+      - template: cronJob.yaml
+        documentIndex: 0
+        equal:
+          path: spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot
+          value: false
+      - template: cronJob.yaml
+        documentIndex: 0
+        equal:
+          path: spec.jobTemplate.spec.template.spec.securityContext.runAsUser
+          value: 621

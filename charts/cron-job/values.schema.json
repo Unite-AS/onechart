@@ -58,6 +58,46 @@
       "required": [],
       "additionalProperties": true
     },
+    "podSecurityContext": {
+      "$id": "#/properties/podSecurityContext",
+      "type": "object",
+      "title": "The podSecurityContext schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": {},
+      "examples": [
+        {
+          "fsGroup": 999
+        }
+      ],
+      "required": [
+        "fsGroup"
+      ],
+      "properties": {
+        "fsGroup": {
+          "$id": "#/properties/podSecurityContext/properties/fsGroup",
+          "type": "integer",
+          "title": "The fsGroup schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": 0,
+          "examples": [
+            999
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "securityContext": {
+      "$id": "#/properties/securityContext",
+      "type": "object",
+      "title": "The securityContext schema",
+      "description": "An explanation about the purpose of this instance.",
+      "default": {},
+      "examples": [
+        {}
+      ],
+      "required": [],
+      "additionalProperties": true
+    },
     "resources": {
       "$id": "#/properties/resources",
       "type": "object",

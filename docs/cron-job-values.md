@@ -237,6 +237,47 @@ podAnnotations:
 Annotations added to the job pod's metadata. Useful for log shippers, service meshes, and other pod-level integrations.
 
 
+## Security Context
+### Pod Security Context (`podSecurityContext`)
+```yaml
+podSecurityContext:
+  fsGroup: 999
+  runAsUser: 621
+  runAsGroup: 999
+  runAsNonRoot: true
+```
+
+Applied at `spec.jobTemplate.spec.template.spec.securityContext`.
+
+Defaults (when not set):
+- `runAsNonRoot: true`
+- `runAsUser: 621`
+- `runAsGroup: 999`
+
+Any additional Kubernetes pod security context fields (for example `fsGroup`) are merged in.
+
+### Container Security Context (`securityContext`)
+```yaml
+securityContext:
+  runAsUser: 621
+  runAsGroup: 999
+  runAsNonRoot: true
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+```
+
+Applied at `spec.jobTemplate.spec.template.spec.containers[0].securityContext`.
+
+Defaults (when not set):
+- `runAsNonRoot: true`
+- `runAsUser: 621`
+- `runAsGroup: 999`
+- `readOnlyRootFilesystem: true`
+- `allowPrivilegeEscalation: false`
+
+Any additional Kubernetes container security context fields are merged in.
+
+
 ## Image Pull Secrets
 ```yaml
 imagePullSecrets:
@@ -294,4 +335,17 @@ tolerations:
     operator: "Equal"
     value: "spot"
     effect: "NoSchedule"
+
+podSecurityContext:
+  fsGroup: 999
+  runAsNonRoot: true
+  runAsUser: 621
+  runAsGroup: 999
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 621
+  runAsGroup: 999
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
 ```

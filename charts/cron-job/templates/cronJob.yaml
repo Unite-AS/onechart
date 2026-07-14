@@ -25,9 +25,45 @@ spec:
             - name: {{ . }}
             {{- end }}
           {{- end }}
+          {{- if .Values.podSecurityContext }}
+          securityContext:
+            runAsNonRoot: {{ hasKey .Values.podSecurityContext "runAsNonRoot" | ternary .Values.podSecurityContext.runAsNonRoot true }}
+            runAsUser: {{ hasKey .Values.podSecurityContext "runAsUser" | ternary .Values.podSecurityContext.runAsUser 621 }}
+            runAsGroup: {{ hasKey .Values.podSecurityContext "runAsGroup" | ternary .Values.podSecurityContext.runAsGroup 999 }}
+            {{- range $key, $value := .Values.podSecurityContext }}
+            {{- if not (or (eq $key "runAsNonRoot") (eq $key "runAsUser") (eq $key "runAsGroup")) }}
+            {{ $key }}: {{ $value }}
+            {{- end }}
+            {{- end }}
+          {{- else }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 621
+            runAsGroup: 999
+          {{- end }}
           restartPolicy: Never
           containers:
             - name: {{ .Release.Name }}
+              {{- if .Values.securityContext }}
+              securityContext:
+                runAsNonRoot: {{ hasKey .Values.securityContext "runAsNonRoot" | ternary .Values.securityContext.runAsNonRoot true }}
+                runAsUser: {{ hasKey .Values.securityContext "runAsUser" | ternary .Values.securityContext.runAsUser 621 }}
+                runAsGroup: {{ hasKey .Values.securityContext "runAsGroup" | ternary .Values.securityContext.runAsGroup 999 }}
+                readOnlyRootFilesystem: {{ hasKey .Values.securityContext "readOnlyRootFilesystem" | ternary .Values.securityContext.readOnlyRootFilesystem true }}
+                allowPrivilegeEscalation: {{ hasKey .Values.securityContext "allowPrivilegeEscalation" | ternary .Values.securityContext.allowPrivilegeEscalation false }}
+                {{- range $key, $value := .Values.securityContext }}
+                {{- if not (or (eq $key "runAsNonRoot") (eq $key "runAsUser") (eq $key "runAsGroup") (eq $key "readOnlyRootFilesystem") (eq $key "allowPrivilegeEscalation")) }}
+                {{ $key }}: {{ $value }}
+                {{- end }}
+                {{- end }}
+              {{- else }}
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 621
+                runAsGroup: 999
+                readOnlyRootFilesystem: true
+                allowPrivilegeEscalation: false
+              {{- end }}
               image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
               {{- if .Values.vars }}
               imagePullPolicy: {{ .Values.image.pullPolicy }}
