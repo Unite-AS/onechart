@@ -102,6 +102,48 @@ sealedSecrets:
 Requires the [Sealed Secrets controller](https://github.com/bitnami-labs/sealed-secrets). Encrypted values are safe to commit to source control.
 
 
+### ExternalSecret (External Secrets Operator)
+Use this when your secrets are managed in an external backend (for example Azure Key Vault) and synced by `external-secrets.io`.
+
+**Preferred (multiple resources):**
+```yaml
+externalSecrets:
+  - name: app-secrets
+    key: app-secrets-key
+    refreshInterval: 30m
+    secretStoreRef:
+      name: my-kv
+      kind: ClusterSecretStore
+  - name: db-secrets
+    secretStoreRef:
+      name: team-kv
+```
+
+One `ExternalSecret` resource is rendered per `externalSecrets` entry.
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| `externalSecrets[].name` | `.Values.secretName` | Kubernetes `Secret` name to create |
+| `externalSecrets[].key` | `externalSecrets[].name` | External backend key/path to extract via `dataFrom.extract.key` |
+| `externalSecrets[].refreshInterval` | `1h0m0s` | Reconciliation interval |
+| `externalSecrets[].secretStoreRef.name` | `azure-key-vault` | External Secrets store name |
+| `externalSecrets[].secretStoreRef.kind` | `ClusterSecretStore` | Store kind |
+
+**Legacy (single resource):**
+```yaml
+secretName: app-secrets
+externalSecret:
+  enabled: true
+  key: app-secrets-key
+  refreshInterval: 30m
+  secretStoreRef:
+    name: my-kv
+    kind: ClusterSecretStore
+```
+
+If `externalSecrets` is empty and `externalSecret.enabled: true`, the chart maps this legacy shape into a single `externalSecrets` entry for backward compatibility.
+
+
 ## Volumes
 ### Persistent Volume Claim (new PVC)
 ```yaml
