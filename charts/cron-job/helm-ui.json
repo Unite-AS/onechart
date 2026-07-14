@@ -61,6 +61,18 @@
   },
   {
     "schemaIDs": [
+      "#/properties/secretName",
+      "#/properties/externalSecret",
+      "#/properties/externalSecrets"
+    ],
+    "uiSchema": {},
+    "metaData": {
+      "name": "External Secrets",
+      "icon": "M15 7a3 3 0 11-6 0 3 3 0 016 0zm-9 8a4 4 0 018 0v4H6v-4zm10-2h2a2 2 0 012 2v4h-4v-4a2 2 0 012-2z"
+    }
+  },
+  {
+    "schemaIDs": [
       "#/properties/volumes"
     ],
     "uiSchema": {},

@@ -224,6 +224,91 @@
       },
       "additionalProperties": true
     },
+    "secretName": {
+      "$id": "#/properties/secretName",
+      "type": "string",
+      "title": "Existing Secret",
+      "description": "Reference an existing secret from your cronjob.",
+      "default": "",
+      "examples": []
+    },
+    "externalSecret": {
+      "$id": "#/properties/externalSecret",
+      "type": "object",
+      "title": "ExternalSecret",
+      "description": "Render an external-secrets.io ExternalSecret resource",
+      "default": {},
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "key": {
+          "type": "string",
+          "default": ""
+        },
+        "refreshInterval": {
+          "type": "string",
+          "default": "1h0m0s"
+        },
+        "secretStoreRef": {
+          "type": "object",
+          "default": {},
+          "properties": {
+            "name": {
+              "type": "string",
+              "default": "azure-key-vault"
+            },
+            "kind": {
+              "type": "string",
+              "default": "ClusterSecretStore"
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "externalSecrets": {
+      "$id": "#/properties/externalSecrets",
+      "type": "array",
+      "title": "External Secrets",
+      "description": "Render multiple external-secrets.io ExternalSecret resources",
+      "default": [],
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "default": ""
+          },
+          "key": {
+            "type": "string",
+            "default": ""
+          },
+          "refreshInterval": {
+            "type": "string",
+            "default": "1h0m0s"
+          },
+          "secretStoreRef": {
+            "type": "object",
+            "default": {},
+            "properties": {
+              "name": {
+                "type": "string",
+                "default": "azure-key-vault"
+              },
+              "kind": {
+                "type": "string",
+                "default": "ClusterSecretStore"
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      }
+    },
     "shell": {
       "$id": "#/properties/shell",
       "type": "string",
@@ -319,5 +404,25 @@
       }
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "externalSecret": {
+            "properties": {
+              "enabled": {
+                "const": true
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "secretName"
+        ]
+      }
+    }
+  ],
   "additionalProperties": true
 }
