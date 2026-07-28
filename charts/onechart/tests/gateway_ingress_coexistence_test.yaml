@@ -1,0 +1,18 @@
+suite: test gateway ingress coexistence
+templates:
+  - ingress.yaml
+  - httproute.yaml
+tests:
+  - it: Should render ingress and httproute together
+    set:
+      gatewayApi:
+        enabled: true
+      ingress:
+        host: chart-example.local
+    asserts:
+      - template: ingress.yaml
+        hasDocuments:
+          count: 1
+      - template: httproute.yaml
+        hasDocuments:
+          count: 1

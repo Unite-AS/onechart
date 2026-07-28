@@ -128,6 +128,65 @@ ingresses:
     ingressClassName: nginx
 ```
 
+## Gateway API (HTTPRoute)
+Gateway API rendering is opt-in and currently creates `HTTPRoute` resources only.
+
+```yaml
+gatewayApi:
+  enabled: true
+```
+
+When enabled:
+- `ingress` and `ingresses` are reused as route input (host/path/pathType).
+- Ingress is still rendered normally; Gateway API does not replace it.
+- Parent Gateway refs default to platform-managed values.
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| `gatewayApi.enabled` | `false` | Enables rendering `gateway.networking.k8s.io/v1` `HTTPRoute` resources |
+| `gatewayApi.parentRefs` | `[{name: shared-gateway, namespace: gateway-system, sectionName: https}]` | Gateway attachments for generated routes |
+
+### Default parentRefs
+```yaml
+gatewayApi:
+  parentRefs:
+    - name: shared-gateway
+      namespace: gateway-system
+      sectionName: https
+```
+
+These defaults are intended for platform-managed Gateways. Most app teams should not need to change them.
+
+### Route source and naming behavior
+- `ingress` creates one `HTTPRoute` named from the release name (or `ingress.name` if set).
+- `ingresses` creates one `HTTPRoute` per item.
+- If `ingresses[].name` is not set, a host-based suffix is added for uniqueness.
+- Backend service name and port follow existing onechart behavior (`activeServiceName` and `svcPort` fallback to `containerPort`).
+
+### Path matching
+OneChart maps ingress-style `pathType` to HTTPRoute path types:
+
+| Ingress-style `pathType` | HTTPRoute `matches[].path.type` |
+|--------------------------|----------------------------------|
+| `Prefix` (or omitted) | `PathPrefix` |
+| `Exact` | `Exact` |
+| `RegularExpression` | `RegularExpression` |
+
+### Example with custom parentRefs
+```yaml
+gatewayApi:
+  enabled: true
+  parentRefs:
+    - name: team-gateway
+      namespace: gateways
+      sectionName: https-public
+
+ingress:
+  host: myapp.example.com
+  path: /
+  pathType: Prefix
+```
+
 
 ## Environment Variables
 ```yaml
