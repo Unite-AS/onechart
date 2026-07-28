@@ -14,6 +14,18 @@ image:
 #     user: admin
 #     password: secret
 
+gatewayApi:
+  # Enable rendering of Gateway API HTTPRoute resources.
+  # This reuses existing ingress/ingresses host and path configuration.
+  enabled: false
+  # Parent Gateway references are prefilled for the platform-managed shared Gateway.
+  # Applications should usually not need to change these values.
+  # Ingress remains independent; enabling this does not disable ingress rendering.
+  parentRefs:
+    - name: shared-gateway
+      namespace: gateway-system
+      sectionName: https
+
 # vars:
 #   MY_VAR: "value"
 

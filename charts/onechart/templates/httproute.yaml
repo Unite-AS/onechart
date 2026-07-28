@@ -1,0 +1,98 @@
+{{/* OneChart HTTPRoute snippet */}}
+{{- define "onechart.httpRoutePathType" -}}
+{{- $pathType := . | default "Prefix" -}}
+{{- if eq $pathType "Exact" -}}
+Exact
+{{- else if eq $pathType "RegularExpression" -}}
+RegularExpression
+{{- else -}}
+PathPrefix
+{{- end -}}
+{{- end -}}
+
+{{- define "onechart.httpRoute" }}
+{{- $robustName := include "robustName" .root.Release.Name -}}
+{{- $resourceName := $robustName -}}
+{{- if .longName }}
+{{- $resourceName = printf "%s-%s" $robustName (include "robustName" .route.host) -}}
+{{- end }}
+{{- if and .route.name (not .ignoreRouteName) }}
+{{- $resourceName = include "robustName" .route.name -}}
+{{- end }}
+{{- if .nameSuffix }}
+{{- $resourceName = printf "%s-%s" $resourceName (include "robustName" .nameSuffix) -}}
+{{- end }}
+{{- $svcPort := .root.Values.svcPort -}}
+{{- $containerPort := .root.Values.containerPort -}}
+{{- $activeServiceName := include "onechart.activeServiceName" .root -}}
+{{- $serviceName := $activeServiceName -}}
+{{- if .serviceName }}
+{{- $serviceName = .serviceName -}}
+{{- end }}
+{{- $host := .route.host -}}
+{{- if .host }}
+{{- $host = .host -}}
+{{- end }}
+{{- $annotations := .route.annotations -}}
+{{- if .annotations }}
+{{- $annotations = .annotations -}}
+{{- end }}
+{{- $defaultParentRefs := list (dict "name" "shared-gateway" "namespace" "gateway-system" "sectionName" "https") -}}
+{{- $parentRefs := .root.Values.gatewayApi.parentRefs | default $defaultParentRefs -}}
+{{- if .parentRefs }}
+{{- $parentRefs = .parentRefs -}}
+{{- end }}
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $resourceName }}
+  namespace: {{ .root.Release.Namespace }}
+  labels:
+    {{- include "helm-chart.labels" .root | nindent 4 }}
+  {{- if or (or .root.Values.gitSha .root.Values.gitRepository) $annotations }}
+  annotations:
+    {{- if $annotations }}
+      {{- toYaml $annotations | nindent 4 }}
+    {{- end }}
+    {{- if .root.Values.gitSha }}
+    unite.as/git-sha: {{ .root.Values.gitSha }}
+    {{- end }}
+    {{- if .root.Values.gitRepository }}
+    unite.as/git-repository: {{ .root.Values.gitRepository }}
+    {{- end }}
+  {{- end }}
+spec:
+  parentRefs:
+    {{- toYaml $parentRefs | nindent 4 }}
+  {{- if $host }}
+  hostnames:
+    - {{ $host | quote }}
+  {{- end }}
+  rules:
+    - matches:
+        {{- if not .route.paths }}
+        - path:
+            type: {{ include "onechart.httpRoutePathType" (.route.pathType | default "Prefix") }}
+            value: {{ .route.path | default "/" | quote }}
+        {{- else }}
+        {{- range .route.paths }}
+        - path:
+            type: {{ include "onechart.httpRoutePathType" (.pathType | default "Prefix") }}
+            value: {{ .path | quote }}
+        {{- end }}
+        {{- end }}
+      backendRefs:
+        - name: {{ $serviceName }}
+          port: {{ if $svcPort }}{{ $svcPort }}{{ else }}{{ $containerPort }}{{ end }}
+{{- end }}
+
+{{- if and .Values.gatewayApi .Values.gatewayApi.enabled }}
+  {{- with .Values.ingress }}
+    {{- template "onechart.httpRoute" (dict "root" $ "route" .) }}
+  {{- end }}
+  {{- range .Values.ingresses }}
+{{ template "onechart.httpRoute" (dict "root" $ "route" . "longName" true) }}
+  {{- end }}
+{{- end }}

@@ -55,6 +55,30 @@ rollout:
       private: true
 ```
 
+### Gateway API support (HTTPRoute)
+
+OneChart can render `HTTPRoute` resources (Gateway API) as an opt-in feature.
+
+- Set `gatewayApi.enabled=true` to enable it.
+- It reuses your existing `ingress` / `ingresses` host + path config as route input.
+- Parent Gateway references are prefilled for platform-managed Gateways.
+- Ingress is not disabled automatically: if both `ingress` and `gatewayApi.enabled` are set, both resources are rendered.
+
+```yaml
+gatewayApi:
+  enabled: true
+
+ingress:
+  host: my-app.mycompany.com
+  path: /
+  pathType: Prefix
+```
+
+`pathType` mapping from Ingress-style values to HTTPRoute:
+- `Prefix` -> `PathPrefix`
+- `Exact` -> `Exact`
+- `RegularExpression` -> `RegularExpression`
+
 
 ### Alternative: using an OCI repository
 You can also template and install onechart from an OCI repository as follows:
