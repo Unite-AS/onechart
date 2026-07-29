@@ -62,11 +62,25 @@ OneChart can render `HTTPRoute` resources (Gateway API) as an opt-in feature.
 - Set `gatewayApi.enabled=true` to enable it.
 - It reuses your existing `ingress` / `ingresses` host + path config as route input.
 - Parent Gateway references are prefilled for platform-managed Gateways.
+- HTTPS is enforced by default by rendering:
+  - a backend route on the HTTPS listener
+  - a redirect route on the HTTP listener using `RequestRedirect` (`301`)
 - Ingress is not disabled automatically: if both `ingress` and `gatewayApi.enabled` are set, both resources are rendered.
 
 ```yaml
 gatewayApi:
   enabled: true
+  parentRefs:
+    - name: edge-shared
+      namespace: kong
+      sectionName: https
+  httpRedirect:
+    enabled: true
+    statusCode: 301
+    parentRefs:
+      - name: edge-shared
+        namespace: kong
+        sectionName: http
 
 ingress:
   host: my-app.mycompany.com

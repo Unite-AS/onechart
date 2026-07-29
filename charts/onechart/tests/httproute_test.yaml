@@ -18,33 +18,63 @@ tests:
         host: chart-example.local
     asserts:
       - hasDocuments:
-          count: 1
-      - equal:
+          count: 2
+      - documentIndex: 0
+        equal:
+          path: metadata.name
+          value: release-name
+      - documentIndex: 0
+        equal:
           path: apiVersion
           value: gateway.networking.k8s.io/v1
-      - equal:
+      - documentIndex: 0
+        equal:
           path: kind
           value: HTTPRoute
-      - equal:
+      - documentIndex: 0
+        equal:
           path: spec.parentRefs
           value:
-            - name: shared-gateway
-              namespace: gateway-system
+            - name: edge-shared
+              namespace: kong
               sectionName: https
-      - equal:
+      - documentIndex: 0
+        equal:
           path: spec.hostnames[0]
           value: chart-example.local
-      - equal:
+      - documentIndex: 0
+        equal:
           path: spec.rules[0].matches[0].path
           value:
             type: PathPrefix
             value: /
-      - equal:
+      - documentIndex: 0
+        equal:
           path: spec.rules[0].backendRefs[0].name
           value: release-name
-      - equal:
+      - documentIndex: 0
+        equal:
           path: spec.rules[0].backendRefs[0].port
           value: 80
+      - documentIndex: 1
+        equal:
+          path: metadata.name
+          value: release-name-http-redirect
+      - documentIndex: 1
+        equal:
+          path: spec.parentRefs
+          value:
+            - name: edge-shared
+              namespace: kong
+              sectionName: http
+      - documentIndex: 1
+        equal:
+          path: spec.rules[0].filters[0]
+          value:
+            type: RequestRedirect
+            requestRedirect:
+              scheme: https
+              statusCode: 301
 
   - it: Should map ingress pathType to HTTPRoute path type
     set:
@@ -55,7 +85,14 @@ tests:
         path: /metrics
         pathType: Exact
     asserts:
-      - equal:
+      - documentIndex: 0
+        equal:
+          path: spec.rules[0].matches[0].path
+          value:
+            type: Exact
+            value: /metrics
+      - documentIndex: 1
+        equal:
           path: spec.rules[0].matches[0].path
           value:
             type: Exact
@@ -70,9 +107,25 @@ tests:
       svcPort: 1234
       containerPort: 5678
     asserts:
-      - equal:
+      - documentIndex: 0
+        equal:
           path: spec.rules[0].backendRefs[0].port
           value: 1234
+
+  - it: Should allow disabling HTTP redirect route
+    set:
+      gatewayApi:
+        enabled: true
+        httpRedirect:
+          enabled: false
+      ingress:
+        host: chart-example.local
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: release-name
 
   - it: Should render multiple HTTPRoutes from ingresses
     set:
@@ -83,7 +136,7 @@ tests:
         - host: another.local
     asserts:
       - hasDocuments:
-          count: 2
+          count: 4
       - documentIndex: 0
         equal:
           path: metadata.name
@@ -91,7 +144,15 @@ tests:
       - documentIndex: 1
         equal:
           path: metadata.name
+          value: release-name-chart-example-local-http-redirect
+      - documentIndex: 2
+        equal:
+          path: metadata.name
           value: release-name-another-local
+      - documentIndex: 3
+        equal:
+          path: metadata.name
+          value: release-name-another-local-http-redirect
 
   - it: Should use explicit route name when provided
     set:
@@ -101,6 +162,13 @@ tests:
         - name: app-public
           host: chart-example.local
     asserts:
-      - equal:
+      - hasDocuments:
+          count: 2
+      - documentIndex: 0
+        equal:
           path: metadata.name
           value: app-public
+      - documentIndex: 1
+        equal:
+          path: metadata.name
+          value: app-public-http-redirect

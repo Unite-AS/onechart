@@ -18,13 +18,23 @@ gatewayApi:
   # Enable rendering of Gateway API HTTPRoute resources.
   # This reuses existing ingress/ingresses host and path configuration.
   enabled: false
-  # Parent Gateway references are prefilled for the platform-managed shared Gateway.
+  # Parent Gateway references for backend HTTPS routes.
+  # Defaults point to the platform-managed shared edge Gateway https listener.
   # Applications should usually not need to change these values.
   # Ingress remains independent; enabling this does not disable ingress rendering.
   parentRefs:
-    - name: shared-gateway
-      namespace: gateway-system
+    - name: edge-shared
+      namespace: kong
       sectionName: https
+  # HTTP->HTTPS redirect route configuration.
+  # By default, each route also renders an HTTP listener route with RequestRedirect to HTTPS.
+  httpRedirect:
+    enabled: true
+    statusCode: 301
+    parentRefs:
+      - name: edge-shared
+        namespace: kong
+        sectionName: http
 
 # vars:
 #   MY_VAR: "value"

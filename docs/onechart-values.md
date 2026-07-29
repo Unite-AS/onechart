@@ -140,19 +140,30 @@ When enabled:
 - `ingress` and `ingresses` are reused as route input (host/path/pathType).
 - Ingress is still rendered normally; Gateway API does not replace it.
 - Parent Gateway refs default to platform-managed values.
+- HTTPS is enforced by default with a dedicated HTTP redirect route (`RequestRedirect` to `https`, `301`).
 
 | Field | Default | Description |
 |-------|---------|-------------|
 | `gatewayApi.enabled` | `false` | Enables rendering `gateway.networking.k8s.io/v1` `HTTPRoute` resources |
-| `gatewayApi.parentRefs` | `[{name: shared-gateway, namespace: gateway-system, sectionName: https}]` | Gateway attachments for generated routes |
+| `gatewayApi.parentRefs` | `[{name: edge-shared, namespace: kong, sectionName: https}]` | Parent refs for backend routes on HTTPS listener |
+| `gatewayApi.httpRedirect.enabled` | `true` | Render companion redirect routes for HTTP listener |
+| `gatewayApi.httpRedirect.statusCode` | `301` | Redirect status code for `RequestRedirect` |
+| `gatewayApi.httpRedirect.parentRefs` | `[{name: edge-shared, namespace: kong, sectionName: http}]` | Parent refs for HTTP redirect routes |
 
 ### Default parentRefs
 ```yaml
 gatewayApi:
   parentRefs:
-    - name: shared-gateway
-      namespace: gateway-system
+    - name: edge-shared
+      namespace: kong
       sectionName: https
+  httpRedirect:
+    enabled: true
+    statusCode: 301
+    parentRefs:
+      - name: edge-shared
+        namespace: kong
+        sectionName: http
 ```
 
 These defaults are intended for platform-managed Gateways. Most app teams should not need to change them.
@@ -162,6 +173,7 @@ These defaults are intended for platform-managed Gateways. Most app teams should
 - `ingresses` creates one `HTTPRoute` per item.
 - If `ingresses[].name` is not set, a host-based suffix is added for uniqueness.
 - Backend service name and port follow existing onechart behavior (`activeServiceName` and `svcPort` fallback to `containerPort`).
+- Each backend route also gets a redirect route named `<route-name>-http-redirect` when `gatewayApi.httpRedirect.enabled=true`.
 
 ### Path matching
 OneChart maps ingress-style `pathType` to HTTPRoute path types:
@@ -180,6 +192,13 @@ gatewayApi:
     - name: team-gateway
       namespace: gateways
       sectionName: https-public
+  httpRedirect:
+    enabled: true
+    statusCode: 301
+    parentRefs:
+      - name: team-gateway
+        namespace: gateways
+        sectionName: http-public
 
 ingress:
   host: myapp.example.com

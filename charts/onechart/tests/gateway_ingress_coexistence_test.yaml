@@ -15,4 +15,4 @@ tests:
           count: 1
       - template: httproute.yaml
         hasDocuments:
-          count: 1
+          count: 2
