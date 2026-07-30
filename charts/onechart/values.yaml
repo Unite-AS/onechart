@@ -17,8 +17,23 @@ image:
 
 gatewayApi:
   # Enable rendering of Gateway API HTTPRoute resources.
-  # This reuses existing ingress/ingresses host and path configuration.
+  # Route input can come from gatewayApi.route/gatewayApi.routes directly.
+  # If both are omitted, ingress/ingresses are reused as a fallback.
   enabled: false
+  # Optional direct single route definition.
+  # route:
+  #   host: chart-example.local
+  #   path: /
+  #   pathType: Prefix
+  # Optional direct multi route definitions.
+  # routes:
+  #   - name: myapp-public
+  #     host: chart-example.local
+  #   - name: myapp-metrics
+  #     host: chart-example.local
+  #     paths:
+  #       - path: /metrics
+  #         pathType: Exact
   # Parent Gateway references for backend HTTPS routes.
   # Defaults point to the platform-managed shared edge Gateway https listener.
   # Applications should usually not need to change these values.

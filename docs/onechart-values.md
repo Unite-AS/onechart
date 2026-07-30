@@ -138,10 +138,15 @@ Gateway API rendering is opt-in and currently creates `HTTPRoute` resources only
 ```yaml
 gatewayApi:
   enabled: true
+  route:
+    host: myapp.example.com
+    path: /
+    pathType: Prefix
 ```
 
 When enabled:
-- `ingress` and `ingresses` are reused as route input (host/path/pathType).
+- `gatewayApi.route` and `gatewayApi.routes` are first-class route inputs.
+- If both are omitted, `ingress` and `ingresses` are reused as fallback route input.
 - Ingress is still rendered normally unless `ingress.resourcesEnabled: false`.
 - Parent Gateway refs default to platform-managed values.
 - HTTPS is enforced by default with a dedicated HTTP redirect route (`RequestRedirect` to `https`, `301`).
@@ -149,6 +154,8 @@ When enabled:
 | Field | Default | Description |
 |-------|---------|-------------|
 | `gatewayApi.enabled` | `false` | Enables rendering `gateway.networking.k8s.io/v1` `HTTPRoute` resources |
+| `gatewayApi.route` |  | Optional single HTTPRoute input definition |
+| `gatewayApi.routes` | `[]` | Optional list of HTTPRoute input definitions |
 | `gatewayApi.parentRefs` | `[{name: edge-shared, namespace: kong, sectionName: https}]` | Parent refs for backend routes on HTTPS listener |
 | `gatewayApi.httpRedirect.enabled` | `true` | Render companion redirect routes for HTTP listener |
 | `gatewayApi.httpRedirect.statusCode` | `301` | Redirect status code for `RequestRedirect` |
@@ -173,11 +180,13 @@ gatewayApi:
 These defaults are intended for platform-managed Gateways. Most app teams should not need to change them.
 
 ### Route source and naming behavior
-- `ingress` creates one `HTTPRoute` named from the release name (or `ingress.name` if set).
-- `ingresses` creates one `HTTPRoute` per item.
-- If `ingresses[].name` is not set, a host-based suffix is added for uniqueness.
+- `gatewayApi.route` creates one `HTTPRoute`.
+- `gatewayApi.routes` creates one `HTTPRoute` per item.
+- If `gatewayApi.route` / `gatewayApi.routes` are provided, they take precedence over ingress fallback.
+- If route `name` is omitted for list items, a host-based suffix is added for uniqueness.
 - Backend service name and port follow existing onechart behavior (`activeServiceName` and `svcPort` fallback to `containerPort`).
 - Each backend route also gets a redirect route named `<route-name>-http-redirect` when `gatewayApi.httpRedirect.enabled=true`.
+- Redirect routes set `requestRedirect.hostname` from the route host to satisfy controllers that require a fully qualified redirect target.
 
 ### Path matching
 OneChart maps ingress-style `pathType` to HTTPRoute path types:
@@ -192,6 +201,14 @@ OneChart maps ingress-style `pathType` to HTTPRoute path types:
 ```yaml
 gatewayApi:
   enabled: true
+  routes:
+    - name: myapp-public
+      host: myapp.example.com
+    - name: myapp-metrics
+      host: myapp.example.com
+      paths:
+        - path: /metrics
+          pathType: Exact
   parentRefs:
     - name: team-gateway
       namespace: gateways
@@ -205,9 +222,7 @@ gatewayApi:
         sectionName: http-public
 
 ingress:
-  host: myapp.example.com
-  path: /
-  pathType: Prefix
+ resourcesEnabled: false
 ```
 
 

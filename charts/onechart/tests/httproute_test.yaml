@@ -74,6 +74,7 @@ tests:
             type: RequestRedirect
             requestRedirect:
               scheme: https
+              hostname: chart-example.local
               statusCode: 301
 
   - it: Should map ingress pathType to HTTPRoute path type
@@ -172,3 +173,88 @@ tests:
         equal:
           path: metadata.name
           value: app-public-http-redirect
+
+  - it: Should render from gatewayApi.route without ingress values
+    set:
+      gatewayApi:
+        enabled: true
+        route:
+          name: app-gw
+          host: gw-chart-example.local
+          path: /api
+          pathType: Prefix
+    asserts:
+      - hasDocuments:
+          count: 2
+      - documentIndex: 0
+        equal:
+          path: metadata.name
+          value: app-gw
+      - documentIndex: 0
+        equal:
+          path: spec.hostnames[0]
+          value: gw-chart-example.local
+      - documentIndex: 0
+        equal:
+          path: spec.rules[0].matches[0].path
+          value:
+            type: PathPrefix
+            value: /api
+
+  - it: Should render from gatewayApi.routes list
+    set:
+      gatewayApi:
+        enabled: true
+        routes:
+          - name: app-public
+            host: chart-example.local
+          - host: metrics.local
+            paths:
+              - path: /metrics
+                pathType: Exact
+    asserts:
+      - hasDocuments:
+          count: 4
+      - documentIndex: 0
+        equal:
+          path: metadata.name
+          value: app-public
+      - documentIndex: 1
+        equal:
+          path: metadata.name
+          value: app-public-http-redirect
+      - documentIndex: 2
+        equal:
+          path: metadata.name
+          value: release-name-metrics-local
+      - documentIndex: 3
+        equal:
+          path: metadata.name
+          value: release-name-metrics-local-http-redirect
+      - documentIndex: 2
+        equal:
+          path: spec.rules[0].matches[0].path
+          value:
+            type: Exact
+            value: /metrics
+
+  - it: Should prefer gatewayApi routes over ingress fallback
+    set:
+      gatewayApi:
+        enabled: true
+        route:
+          name: explicit-gw
+          host: explicit.example.local
+      ingress:
+        host: fallback-ingress.local
+    asserts:
+      - hasDocuments:
+          count: 2
+      - documentIndex: 0
+        equal:
+          path: metadata.name
+          value: explicit-gw
+      - documentIndex: 0
+        equal:
+          path: spec.hostnames[0]
+          value: explicit.example.local

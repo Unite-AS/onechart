@@ -125,15 +125,25 @@ spec:
         - type: RequestRedirect
           requestRedirect:
             scheme: https
+            hostname: {{ $host | quote }}
             statusCode: {{ $redirectStatusCode }}
 {{- end }}
 {{- end }}
 
 {{- if and .Values.gatewayApi .Values.gatewayApi.enabled }}
-  {{- with .Values.ingress }}
-    {{- template "onechart.httpRoute" (dict "root" $ "route" .) }}
-  {{- end }}
-  {{- range .Values.ingresses }}
+  {{- if or .Values.gatewayApi.route .Values.gatewayApi.routes }}
+    {{- with .Values.gatewayApi.route }}
+      {{- template "onechart.httpRoute" (dict "root" $ "route" .) }}
+    {{- end }}
+    {{- range .Values.gatewayApi.routes }}
 {{ template "onechart.httpRoute" (dict "root" $ "route" . "longName" true) }}
+    {{- end }}
+  {{- else }}
+    {{- with .Values.ingress }}
+      {{- template "onechart.httpRoute" (dict "root" $ "route" .) }}
+    {{- end }}
+    {{- range .Values.ingresses }}
+{{ template "onechart.httpRoute" (dict "root" $ "route" . "longName" true) }}
+    {{- end }}
   {{- end }}
 {{- end }}
