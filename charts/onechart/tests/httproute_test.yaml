@@ -38,6 +38,7 @@ tests:
             - name: edge-shared
               namespace: kong
               sectionName: https
+              port: 443
       - documentIndex: 0
         equal:
           path: spec.hostnames[0]
@@ -67,6 +68,7 @@ tests:
             - name: edge-shared
               namespace: kong
               sectionName: http
+              port: 80
       - documentIndex: 1
         equal:
           path: spec.rules[0].filters[0]

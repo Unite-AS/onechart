@@ -156,10 +156,10 @@ When enabled:
 | `gatewayApi.enabled` | `false` | Enables rendering `gateway.networking.k8s.io/v1` `HTTPRoute` resources |
 | `gatewayApi.route` |  | Optional single HTTPRoute input definition |
 | `gatewayApi.routes` | `[]` | Optional list of HTTPRoute input definitions |
-| `gatewayApi.parentRefs` | `[{name: edge-shared, namespace: kong, sectionName: https}]` | Parent refs for backend routes on HTTPS listener |
+| `gatewayApi.parentRefs` | `[{name: edge-shared, namespace: kong, sectionName: https, port: 443}]` | Parent refs for backend routes on HTTPS listener |
 | `gatewayApi.httpRedirect.enabled` | `true` | Render companion redirect routes for HTTP listener |
 | `gatewayApi.httpRedirect.statusCode` | `301` | Redirect status code for `RequestRedirect` |
-| `gatewayApi.httpRedirect.parentRefs` | `[{name: edge-shared, namespace: kong, sectionName: http}]` | Parent refs for HTTP redirect routes |
+| `gatewayApi.httpRedirect.parentRefs` | `[{name: edge-shared, namespace: kong, sectionName: http, port: 80}]` | Parent refs for HTTP redirect routes |
 
 ### Default parentRefs
 ```yaml
@@ -168,6 +168,7 @@ gatewayApi:
     - name: edge-shared
       namespace: kong
       sectionName: https
+      port: 443
   httpRedirect:
     enabled: true
     statusCode: 301
@@ -175,9 +176,11 @@ gatewayApi:
       - name: edge-shared
         namespace: kong
         sectionName: http
+        port: 80
 ```
 
 These defaults are intended for platform-managed Gateways. Most app teams should not need to change them.
+The explicit listener `port` pins each route to the expected listener and avoids redirect loops when a controller is lenient about `sectionName`.
 
 ### Route source and naming behavior
 - `gatewayApi.route` creates one `HTTPRoute`.
@@ -213,6 +216,7 @@ gatewayApi:
     - name: team-gateway
       namespace: gateways
       sectionName: https-public
+      port: 443
   httpRedirect:
     enabled: true
     statusCode: 301
@@ -220,6 +224,7 @@ gatewayApi:
       - name: team-gateway
         namespace: gateways
         sectionName: http-public
+        port: 80
 
 ingress:
  resourcesEnabled: false

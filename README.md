@@ -81,6 +81,7 @@ gatewayApi:
     - name: edge-shared
       namespace: kong
       sectionName: https
+      port: 443
   httpRedirect:
     enabled: true
     statusCode: 301
@@ -88,6 +89,7 @@ gatewayApi:
       - name: edge-shared
         namespace: kong
         sectionName: http
+        port: 80
 
 ingress:
   resourcesEnabled: false   # optional: Gateway-only mode
