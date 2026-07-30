@@ -4,6 +4,7 @@ image:
   pullPolicy: IfNotPresent
 
 # ingress:
+#   resourcesEnabled: true # controls ingress resource rendering only
 #   name: myapp-public
 #   host: chart-example.local
 #   ingressClassName: nginx

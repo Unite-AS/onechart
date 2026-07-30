@@ -16,3 +16,18 @@ tests:
       - template: httproute.yaml
         hasDocuments:
           count: 2
+
+  - it: Should render only httproutes when ingress resources are disabled
+    set:
+      gatewayApi:
+        enabled: true
+      ingress:
+        resourcesEnabled: false
+        host: chart-example.local
+    asserts:
+      - template: ingress.yaml
+        hasDocuments:
+          count: 0
+      - template: httproute.yaml
+        hasDocuments:
+          count: 2

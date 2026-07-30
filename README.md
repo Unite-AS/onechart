@@ -66,6 +66,8 @@ OneChart can render `HTTPRoute` resources (Gateway API) as an opt-in feature.
   - a backend route on the HTTPS listener
   - a redirect route on the HTTP listener using `RequestRedirect` (`301`)
 - Ingress is not disabled automatically: if both `ingress` and `gatewayApi.enabled` are set, both resources are rendered.
+- Set `ingress.resourcesEnabled=false` for Gateway-only mode while still reusing ingress host/path values as HTTPRoute input.
+- `ingress.enabled` is not used; use `ingress.resourcesEnabled` explicitly.
 
 ```yaml
 gatewayApi:
@@ -83,6 +85,7 @@ gatewayApi:
         sectionName: http
 
 ingress:
+  resourcesEnabled: false   # disable Ingress resources, keep ingress values as route input
   host: my-app.mycompany.com
   path: /
   pathType: Prefix

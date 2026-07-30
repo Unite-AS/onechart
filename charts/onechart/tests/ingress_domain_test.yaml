@@ -196,3 +196,16 @@ tests:
             - hosts:
                 - chart-example.local
               secretName: tls-internal
+
+  - it: Should disable all ingress resources when ingress.resourcesEnabled is false
+    set:
+      ingress:
+        resourcesEnabled: false
+        host: chart-example.local
+      ingresses:
+        - host: another.local
+      rollout:
+        enabled: true
+    asserts:
+      - hasDocuments:
+          count: 0

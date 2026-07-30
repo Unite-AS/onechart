@@ -68,6 +68,7 @@ Each entry requires a `name` and `containerPort`. Optional fields: `svcPort`, `n
 ### Single ingress
 ```yaml
 ingress:
+  resourcesEnabled: true
   name: myapp-public
   host: myapp.example.com
   ingressClassName: nginx    # defaults to "kong" if omitted
@@ -78,6 +79,7 @@ ingress:
 
 | Field | Default | Description |
 |-------|---------|-------------|
+| `ingress.resourcesEnabled` | `true` | Master switch for ingress resources (`ingress`, `ingresses`, rollout preview ingress, and nginx basic auth secret) |
 | `ingress.name` | `<release-name>` | Optional explicit name for the Ingress resource |
 | `ingress.host` |  | Hostname where the app will be accessible |
 | `ingress.ingressClassName` | `kong` | Ingress controller class |
@@ -88,6 +90,8 @@ ingress:
 | `ingress.annotations` |  | Custom ingress annotations (replaces default Kong annotations) |
 
 > If no `annotations` are provided, Kong-specific defaults are applied (`konghq.com/strip-path`, https redirect, etc.).
+> Set `ingress.resourcesEnabled: false` to disable ingress resources while still reusing `ingress` / `ingresses` values as HTTPRoute input for Gateway API.
+> `ingress.enabled` is intentionally not used; `ingress.resourcesEnabled` is the only ingress rendering switch.
 
 ### Basic Auth (Nginx)
 ```yaml
@@ -138,7 +142,7 @@ gatewayApi:
 
 When enabled:
 - `ingress` and `ingresses` are reused as route input (host/path/pathType).
-- Ingress is still rendered normally; Gateway API does not replace it.
+- Ingress is still rendered normally unless `ingress.resourcesEnabled: false`.
 - Parent Gateway refs default to platform-managed values.
 - HTTPS is enforced by default with a dedicated HTTP redirect route (`RequestRedirect` to `https`, `301`).
 

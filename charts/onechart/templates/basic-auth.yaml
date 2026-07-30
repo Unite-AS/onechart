@@ -1,4 +1,5 @@
-{{ if .Values.ingress }}{{ if .Values.ingress.nginxBasicAuth }}
+{{- $ingressResourcesEnabled := eq (include "onechart.ingressResourcesEnabled" .) "true" -}}
+{{ if and $ingressResourcesEnabled .Values.ingress .Values.ingress.nginxBasicAuth }}
 {{- $robustName := include "robustName" .Release.Name -}}
 {{- $resourceName := $robustName -}}
 apiVersion: v1
@@ -8,4 +9,4 @@ metadata:
   namespace: {{ .Release.Namespace }}
 data:
   auth: {{ htpasswd .Values.ingress.nginxBasicAuth.user .Values.ingress.nginxBasicAuth.password  | b64enc }}
-{{ end }}{{ end }}
+{{ end }}

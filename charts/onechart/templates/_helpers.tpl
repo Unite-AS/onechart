@@ -87,3 +87,10 @@ Create robustName that can be used as Kubernetes resource name, and as subdomain
 {{- end -}}
 {{- end }}
 
+{{- define "onechart.ingressResourcesEnabled" -}}
+{{- $ingressResourcesEnabled := true -}}
+{{- if and .Values.ingress (hasKey .Values.ingress "resourcesEnabled") -}}
+  {{- $ingressResourcesEnabled = .Values.ingress.resourcesEnabled -}}
+{{- end -}}
+{{- $ingressResourcesEnabled -}}
+{{- end }}

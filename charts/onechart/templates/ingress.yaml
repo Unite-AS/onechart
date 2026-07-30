@@ -108,32 +108,36 @@ spec:
         {{- end }}
 {{- end }}
 
-{{- with .Values.ingress }}
-  {{- template "onechart.ingress" (dict "root" $ "ingress" .) }}
-{{- end }}
+{{- $ingressResourcesEnabled := eq (include "onechart.ingressResourcesEnabled" .) "true" -}}
 
-{{- if and .Values.rollout .Values.rollout.enabled }}
-  {{- $previewServiceName := include "onechart.previewServiceName" . -}}
-  {{- $previewIngressPrivate := true -}}
-  {{- if and .Values.rollout.blueGreen .Values.rollout.blueGreen.previewIngress (hasKey .Values.rollout.blueGreen.previewIngress "private") -}}
-    {{- $previewIngressPrivate = .Values.rollout.blueGreen.previewIngress.private -}}
+{{- if $ingressResourcesEnabled }}
+  {{- with .Values.ingress }}
+    {{- template "onechart.ingress" (dict "root" $ "ingress" .) }}
   {{- end }}
-  {{- $previewIngress := .Values.ingress | default (dict) -}}
-  {{- if $previewIngressPrivate }}
-    {{- template "onechart.ingress" (dict "root" $ "ingress" $previewIngress "nameSuffix" "preview" "serviceName" $previewServiceName "host" $previewServiceName "tlsHost" $previewServiceName "ingressClassName" "tailscale" "annotations" (dict "tailscale.com/hostname" $previewServiceName "tailscale.com/http-redirect" "true") "tlsEnabled" true "omitTlsSecretName" true "omitRuleHost" true) }}
-  {{- else }}
-    {{- if and (not .Values.ingress) (gt (len .Values.ingresses) 0) }}
-      {{- $previewIngress = index .Values.ingresses 0 -}}
-    {{- end }}
-    {{- if and .Values.ingress .Values.ingress.host }}
-      {{- template "onechart.ingress" (dict "root" $ "ingress" $previewIngress "nameSuffix" "preview" "serviceName" $previewServiceName "host" (regexReplaceAll "^[^.]*" .Values.ingress.host $previewServiceName) "forceDefaultAnnotations" true "ignoreIngressName" true) }}
-    {{- end }}
-    {{- if and (not .Values.ingress) $previewIngress $previewIngress.host }}
-      {{- template "onechart.ingress" (dict "root" $ "ingress" $previewIngress "nameSuffix" "preview" "serviceName" $previewServiceName "host" (regexReplaceAll "^[^.]*" $previewIngress.host $previewServiceName) "forceDefaultAnnotations" true "ignoreIngressName" true) }}
-    {{- end }}
-  {{- end }}
-{{- end }}
 
-{{- range .Values.ingresses }}
-{{template "onechart.ingress" (dict "root" $ "ingress" . "longName" true) }}
+  {{- if and .Values.rollout .Values.rollout.enabled }}
+    {{- $previewServiceName := include "onechart.previewServiceName" . -}}
+    {{- $previewIngressPrivate := true -}}
+    {{- if and .Values.rollout.blueGreen .Values.rollout.blueGreen.previewIngress (hasKey .Values.rollout.blueGreen.previewIngress "private") -}}
+      {{- $previewIngressPrivate = .Values.rollout.blueGreen.previewIngress.private -}}
+    {{- end }}
+    {{- $previewIngress := .Values.ingress | default (dict) -}}
+    {{- if $previewIngressPrivate }}
+      {{- template "onechart.ingress" (dict "root" $ "ingress" $previewIngress "nameSuffix" "preview" "serviceName" $previewServiceName "host" $previewServiceName "tlsHost" $previewServiceName "ingressClassName" "tailscale" "annotations" (dict "tailscale.com/hostname" $previewServiceName "tailscale.com/http-redirect" "true") "tlsEnabled" true "omitTlsSecretName" true "omitRuleHost" true) }}
+    {{- else }}
+      {{- if and (not .Values.ingress) (gt (len .Values.ingresses) 0) }}
+        {{- $previewIngress = index .Values.ingresses 0 -}}
+      {{- end }}
+      {{- if and .Values.ingress .Values.ingress.host }}
+        {{- template "onechart.ingress" (dict "root" $ "ingress" $previewIngress "nameSuffix" "preview" "serviceName" $previewServiceName "host" (regexReplaceAll "^[^.]*" .Values.ingress.host $previewServiceName) "forceDefaultAnnotations" true "ignoreIngressName" true) }}
+      {{- end }}
+      {{- if and (not .Values.ingress) $previewIngress $previewIngress.host }}
+        {{- template "onechart.ingress" (dict "root" $ "ingress" $previewIngress "nameSuffix" "preview" "serviceName" $previewServiceName "host" (regexReplaceAll "^[^.]*" $previewIngress.host $previewServiceName) "forceDefaultAnnotations" true "ignoreIngressName" true) }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+
+  {{- range .Values.ingresses }}
+  {{template "onechart.ingress" (dict "root" $ "ingress" . "longName" true) }}
+  {{- end }}
 {{- end }}
