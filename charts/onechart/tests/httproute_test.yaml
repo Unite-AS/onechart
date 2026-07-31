@@ -260,3 +260,31 @@ tests:
         equal:
           path: spec.hostnames[0]
           value: explicit.example.local
+
+  - it: Should remove kong protocols annotation from redirect routes
+    set:
+      gatewayApi:
+        enabled: true
+      ingresses:
+        - name: app-public
+          host: chart-example.local
+          annotations:
+            konghq.com/https-redirect-status-code: "301"
+            konghq.com/protocols: https
+            konghq.com/strip-path: "true"
+    asserts:
+      - hasDocuments:
+          count: 2
+      - documentIndex: 0
+        equal:
+          path: metadata.annotations
+          value:
+            konghq.com/https-redirect-status-code: "301"
+            konghq.com/protocols: https
+            konghq.com/strip-path: "true"
+      - documentIndex: 1
+        equal:
+          path: metadata.annotations
+          value:
+            konghq.com/https-redirect-status-code: "301"
+            konghq.com/strip-path: "true"

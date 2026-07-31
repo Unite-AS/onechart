@@ -190,6 +190,7 @@ The explicit listener `port` pins each route to the expected listener and avoids
 - Backend service name and port follow existing onechart behavior (`activeServiceName` and `svcPort` fallback to `containerPort`).
 - Each backend route also gets a redirect route named `<route-name>-http-redirect` when `gatewayApi.httpRedirect.enabled=true`.
 - Redirect routes set `requestRedirect.hostname` from the route host to satisfy controllers that require a fully qualified redirect target.
+- Redirect routes automatically drop `konghq.com/protocols` from copied annotations so the HTTP redirect route does not collide with HTTPS content routes.
 
 ### Path matching
 OneChart maps ingress-style `pathType` to HTTPRoute path types:

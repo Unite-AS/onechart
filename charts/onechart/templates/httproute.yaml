@@ -71,6 +71,10 @@ annotations:
 {{- if .annotations }}
 {{- $annotations = .annotations -}}
 {{- end }}
+{{- $redirectAnnotations := $annotations -}}
+{{- if $redirectAnnotations -}}
+  {{- $redirectAnnotations = omit $redirectAnnotations "konghq.com/protocols" -}}
+{{- end -}}
 {{- $defaultParentRefs := list (dict "name" "edge-shared" "namespace" "kong" "sectionName" "https" "port" 443) -}}
 {{- $parentRefs := .root.Values.gatewayApi.parentRefs | default $defaultParentRefs -}}
 {{- if .parentRefs }}
@@ -113,7 +117,7 @@ spec:
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  {{- include "onechart.httpRouteMetadata" (dict "resourceName" (printf "%s-http-redirect" $resourceName) "root" .root "annotations" $annotations) | nindent 2 }}
+  {{- include "onechart.httpRouteMetadata" (dict "resourceName" (printf "%s-http-redirect" $resourceName) "root" .root "annotations" $redirectAnnotations) | nindent 2 }}
 spec:
   parentRefs:
     {{- toYaml $redirectParentRefs | nindent 4 }}
