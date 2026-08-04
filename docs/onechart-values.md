@@ -149,7 +149,7 @@ When enabled:
 - If both are omitted, `ingress` and `ingresses` are reused as fallback route input.
 - Ingress is still rendered normally unless `ingress.resourcesEnabled: false`.
 - Parent Gateway refs default to platform-managed values.
-- HTTPS is enforced by default with a dedicated HTTP redirect route (`RequestRedirect` to `https`, `301`).
+- HTTPS redirects are handled on the main HTTPRoute via Kong annotations (for example `konghq.com/https-redirect-status-code: "301"`).
 
 | Field | Default | Description |
 |-------|---------|-------------|
@@ -157,9 +157,6 @@ When enabled:
 | `gatewayApi.route` |  | Optional single HTTPRoute input definition |
 | `gatewayApi.routes` | `[]` | Optional list of HTTPRoute input definitions |
 | `gatewayApi.parentRefs` | `[{name: edge-shared, namespace: kong, sectionName: https, port: 443}]` | Parent refs for backend routes on HTTPS listener |
-| `gatewayApi.httpRedirect.enabled` | `true` | Render companion redirect routes for HTTP listener |
-| `gatewayApi.httpRedirect.statusCode` | `301` | Redirect status code for `RequestRedirect` |
-| `gatewayApi.httpRedirect.parentRefs` | `[{name: edge-shared, namespace: kong, sectionName: http, port: 80}]` | Parent refs for HTTP redirect routes |
 
 ### Default parentRefs
 ```yaml
@@ -169,18 +166,10 @@ gatewayApi:
       namespace: kong
       sectionName: https
       port: 443
-  httpRedirect:
-    enabled: true
-    statusCode: 301
-    parentRefs:
-      - name: edge-shared
-        namespace: kong
-        sectionName: http
-        port: 80
 ```
 
 These defaults are intended for platform-managed Gateways. Most app teams should not need to change them.
-The explicit listener `port` pins each route to the expected listener and avoids redirect loops when a controller is lenient about `sectionName`.
+The explicit listener `port` pins each route to the expected listener.
 
 ### Route source and naming behavior
 - `gatewayApi.route` creates one `HTTPRoute`.
@@ -188,9 +177,7 @@ The explicit listener `port` pins each route to the expected listener and avoids
 - If `gatewayApi.route` / `gatewayApi.routes` are provided, they take precedence over ingress fallback.
 - If route `name` is omitted for list items, a host-based suffix is added for uniqueness.
 - Backend service name and port follow existing onechart behavior (`activeServiceName` and `svcPort` fallback to `containerPort`).
-- Each backend route also gets a redirect route named `<route-name>-http-redirect` when `gatewayApi.httpRedirect.enabled=true`.
-- Redirect routes set `requestRedirect.hostname` from the route host to satisfy controllers that require a fully qualified redirect target.
-- Redirect routes automatically drop `konghq.com/protocols` from copied annotations so the HTTP redirect route does not collide with HTTPS content routes.
+- No companion redirect HTTPRoute is created.
 
 ### Path matching
 OneChart maps ingress-style `pathType` to HTTPRoute path types:
@@ -218,17 +205,9 @@ gatewayApi:
       namespace: gateways
       sectionName: https-public
       port: 443
-  httpRedirect:
-    enabled: true
-    statusCode: 301
-    parentRefs:
-      - name: team-gateway
-        namespace: gateways
-        sectionName: http-public
-        port: 80
 
 ingress:
- resourcesEnabled: false
+  resourcesEnabled: false
 ```
 
 

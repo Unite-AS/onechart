@@ -43,16 +43,6 @@ gatewayApi:
       namespace: kong
       sectionName: https
       port: 443
-  # HTTP->HTTPS redirect route configuration.
-  # By default, each route also renders an HTTP listener route with RequestRedirect to HTTPS.
-  httpRedirect:
-    enabled: true
-    statusCode: 301
-    parentRefs:
-      - name: edge-shared
-        namespace: kong
-        sectionName: http
-        port: 80
 
 # vars:
 #   MY_VAR: "value"

@@ -71,28 +71,11 @@ annotations:
 {{- if .annotations }}
 {{- $annotations = .annotations -}}
 {{- end }}
-{{- $redirectAnnotations := $annotations -}}
-{{- if $redirectAnnotations -}}
-  {{- $redirectAnnotations = omit $redirectAnnotations "konghq.com/protocols" -}}
-{{- end -}}
 {{- $defaultParentRefs := list (dict "name" "edge-shared" "namespace" "kong" "sectionName" "https" "port" 443) -}}
 {{- $parentRefs := .root.Values.gatewayApi.parentRefs | default $defaultParentRefs -}}
 {{- if .parentRefs }}
 {{- $parentRefs = .parentRefs -}}
 {{- end }}
-{{- $redirectEnabled := true -}}
-{{- if and .root.Values.gatewayApi .root.Values.gatewayApi.httpRedirect (hasKey .root.Values.gatewayApi.httpRedirect "enabled") -}}
-  {{- $redirectEnabled = .root.Values.gatewayApi.httpRedirect.enabled -}}
-{{- end -}}
-{{- $defaultRedirectParentRefs := list (dict "name" "edge-shared" "namespace" "kong" "sectionName" "http" "port" 80) -}}
-{{- $redirectParentRefs := $defaultRedirectParentRefs -}}
-{{- if and .root.Values.gatewayApi .root.Values.gatewayApi.httpRedirect .root.Values.gatewayApi.httpRedirect.parentRefs -}}
-  {{- $redirectParentRefs = .root.Values.gatewayApi.httpRedirect.parentRefs -}}
-{{- end -}}
-{{- $redirectStatusCode := 301 -}}
-{{- if and .root.Values.gatewayApi .root.Values.gatewayApi.httpRedirect .root.Values.gatewayApi.httpRedirect.statusCode -}}
-  {{- $redirectStatusCode = .root.Values.gatewayApi.httpRedirect.statusCode -}}
-{{- end -}}
 
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -111,27 +94,6 @@ spec:
       backendRefs:
         - name: {{ $serviceName }}
           port: {{ if $svcPort }}{{ $svcPort }}{{ else }}{{ $containerPort }}{{ end }}
-
-{{- if and $redirectEnabled $host }}
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  {{- include "onechart.httpRouteMetadata" (dict "resourceName" (printf "%s-http-redirect" $resourceName) "root" .root "annotations" $redirectAnnotations) | nindent 2 }}
-spec:
-  parentRefs:
-    {{- toYaml $redirectParentRefs | nindent 4 }}
-  hostnames:
-    - {{ $host | quote }}
-  rules:
-    - {{- include "onechart.httpRouteMatches" (dict "route" .route) | nindent 6 }}
-      filters:
-        - type: RequestRedirect
-          requestRedirect:
-            scheme: https
-            hostname: {{ $host | quote }}
-            statusCode: {{ $redirectStatusCode }}
-{{- end }}
 {{- end }}
 
 {{- if and .Values.gatewayApi .Values.gatewayApi.enabled }}

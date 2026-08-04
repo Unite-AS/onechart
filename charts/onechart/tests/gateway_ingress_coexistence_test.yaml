@@ -15,7 +15,7 @@ tests:
           count: 1
       - template: httproute.yaml
         hasDocuments:
-          count: 2
+          count: 1
 
   - it: Should render only httproutes when ingress resources are disabled
     set:
@@ -30,4 +30,4 @@ tests:
           count: 0
       - template: httproute.yaml
         hasDocuments:
-          count: 2
+          count: 1
