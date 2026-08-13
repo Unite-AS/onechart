@@ -94,3 +94,11 @@ Create robustName that can be used as Kubernetes resource name, and as subdomain
 {{- end -}}
 {{- $ingressResourcesEnabled -}}
 {{- end }}
+
+{{- define "helm-chart.effectiveMinReplicas" -}}
+{{- if and .Values.autoscale .Values.autoscale.enabled -}}
+{{- .Values.autoscale.minReplicas | default 1 -}}
+{{- else -}}
+{{- .Values.replicas -}}
+{{- end -}}
+{{- end -}}

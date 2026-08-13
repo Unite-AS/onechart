@@ -1,0 +1,40 @@
+suite: test deployment replicas
+templates:
+  - deployment.yaml
+  - configmap.yaml
+tests:
+  - it: Should set replicas when autoscale is not defined
+    set:
+      replicas: 3
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.replicas
+          value: 3
+  - it: Should set replicas when autoscale is explicitly disabled
+    set:
+      replicas: 3
+      autoscale:
+        enabled: false
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.replicas
+          value: 3
+  - it: Should omit replicas when autoscale is enabled so the HPA owns it
+    set:
+      replicas: 3
+      autoscale:
+        enabled: true
+        minReplicas: 2
+        maxReplicas: 10
+      resources:
+        limits:
+          cpu: 100m
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        isNull:
+          path: spec.replicas

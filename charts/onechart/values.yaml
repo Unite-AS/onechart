@@ -134,7 +134,7 @@ monitor:
 
 autoscale:
   enabled: false
-  minReplicas: 1
+  minReplicas: 2
 
 container: {}
 podSpec: {}

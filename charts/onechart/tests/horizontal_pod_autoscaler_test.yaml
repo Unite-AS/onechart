@@ -111,7 +111,7 @@ tests:
         documentIndex: 0
         isNull:
           path: spec.metrics[1]
-  - it: Should set have a default minReplicas of 1
+  - it: Should set have a default minReplicas of 2
     set:
       resources:
         limits:
@@ -126,4 +126,4 @@ tests:
         documentIndex: 0
         equal:
           path: spec.minReplicas
-          value: 1
+          value: 2

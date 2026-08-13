@@ -5,7 +5,46 @@ tests:
   - it: Should set Pod Disruption budget
     set:
       replicas: 2
+      podDisruptionBudgetEnabled: true
     asserts:
       - equal:
           path: spec.minAvailable
           value: 1
+  - it: Should not set Pod Disruption budget when replicas is 1
+    set:
+      replicas: 1
+      podDisruptionBudgetEnabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: Should base the gate on autoscale minReplicas rather than the static replicas value
+    set:
+      replicas: 1
+      podDisruptionBudgetEnabled: true
+      autoscale:
+        enabled: true
+        minReplicas: 2
+        maxReplicas: 10
+      resources:
+        limits:
+          cpu: 100m
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.minAvailable
+          value: 1
+  - it: Should not set Pod Disruption budget when autoscale minReplicas is 1
+    set:
+      replicas: 3
+      podDisruptionBudgetEnabled: true
+      autoscale:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 10
+      resources:
+        limits:
+          cpu: 100m
+    asserts:
+      - hasDocuments:
+          count: 0

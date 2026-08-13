@@ -62,6 +62,48 @@ tests:
         equal:
           path: spec.strategy.type
           value: RollingUpdate
+  - it: Should recreate based on autoscale minReplicas rather than the static replicas value
+    set:
+      replicas: 2
+      volumes:
+        - name: data
+          path: /var/lib/1clickinfra/data
+          size: 10Gi
+          storageClass: default
+      autoscale:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 10
+      resources:
+        limits:
+          cpu: 100m
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.strategy.type
+          value: Recreate
+  - it: Should not recreate when autoscale minReplicas is greater than 1
+    set:
+      replicas: 1
+      volumes:
+        - name: data
+          path: /var/lib/1clickinfra/data
+          size: 10Gi
+          storageClass: default
+      autoscale:
+        enabled: true
+        minReplicas: 2
+        maxReplicas: 10
+      resources:
+        limits:
+          cpu: 100m
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        notEqual:
+          path: spec.strategy.type
+          value: Recreate
   - it: Should strategy be set
     set:
       strategy: Dummy

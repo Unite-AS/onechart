@@ -17,11 +17,13 @@ metadata:
     v1alpha1.opensca.dev/version.branch: {{ .Values.gitBranch }}
     {{- end }}
 spec:
+  {{- if not (and .Values.autoscale .Values.autoscale.enabled) }}
   replicas: {{ .Values.replicas }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "helm-chart.selectorLabels" . | nindent 6 }}
-  {{- $singleReplica := eq (.Values.replicas | int64) 1 }}
+  {{- $singleReplica := eq (include "helm-chart.effectiveMinReplicas" . | int64) 1 }}
   {{- $strategyNotDefined := not .Values.strategy }}
   {{- if and (and .Values.volumes $singleReplica) $strategyNotDefined}}
   strategy:
