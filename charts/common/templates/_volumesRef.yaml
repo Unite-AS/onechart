@@ -14,6 +14,13 @@ volumes:
     {{- else if .fileName }}
     configMap:
       name: {{ template "common.robustName" (printf "%s-%s" $.Release.Name .name) }}
+    {{- else if .serviceAccountToken }}
+    projected:
+      sources:
+        - serviceAccountToken:
+            audience: {{ .serviceAccountToken.audience }}
+            expirationSeconds: {{ .serviceAccountToken.expirationSeconds | default 3600 }}
+            path: {{ .serviceAccountToken.path | default "token" }}
     {{- else if .hostPath }}
     hostPath:
       path: {{ .hostPath.path }}

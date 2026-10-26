@@ -1250,6 +1250,46 @@
               "existingSecret",
               "path"
             ]
+          },
+          {
+            "id": "#/properties/volumes/oneOf/7",
+            "title": "Mount a projected service account token",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "title": "Name"
+              },
+              "path": {
+                "type": "string",
+                "title": "Path",
+                "description": "The mount directory inside the container"
+              },
+              "serviceAccountToken": {
+                "type": "object",
+                "properties": {
+                  "audience": {
+                    "type": "string"
+                  },
+                  "expirationSeconds": {
+                    "type": "integer",
+                    "default": 3600
+                  },
+                  "path": {
+                    "type": "string",
+                    "default": "token"
+                  }
+                },
+                "required": [
+                  "audience"
+                ]
+              }
+            },
+            "required": [
+              "name",
+              "path",
+              "serviceAccountToken"
+            ]
           }
         ]
       }

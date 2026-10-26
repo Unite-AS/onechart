@@ -321,3 +321,27 @@ tests:
           value:
           - name: shared-volume
             mountPath: /data      
+  - it: Should project a service account token
+    set:
+      volumes:
+        - name: anthropic-token
+          path: /var/run/secrets/anthropic.com
+          serviceAccountToken:
+            audience: https://api.anthropic.com
+            expirationSeconds: 600
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.volumes
+          value:
+            - name: anthropic-token
+              projected:
+                sources:
+                  - serviceAccountToken:
+                      audience: https://api.anthropic.com
+                      expirationSeconds: 600
+                      path: token
+      - template: pvc.yaml
+        hasDocuments:
+          count: 0
