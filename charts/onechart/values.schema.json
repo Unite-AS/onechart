@@ -1274,7 +1274,8 @@
                   "expirationSeconds": {
                     "type": "integer",
                     "minimum": 600,
-                    "default": 3600
+                    "default": 600,
+                    "description": "The shortest lifetime the API server accepts. Kubernetes itself defaults to 3600."
                   },
                   "path": {
                     "type": "string",

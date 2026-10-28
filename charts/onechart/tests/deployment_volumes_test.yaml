@@ -329,7 +329,7 @@ tests:
           path: /var/run/secrets/anthropic.com
           serviceAccountToken:
             audience: https://api.anthropic.com
-            expirationSeconds: 600
+            expirationSeconds: 1200
             path: identity
     asserts:
       - template: deployment.yaml
@@ -342,7 +342,7 @@ tests:
                 sources:
                   - serviceAccountToken:
                       audience: https://api.anthropic.com
-                      expirationSeconds: 600
+                      expirationSeconds: 1200
                       path: identity
       - template: deployment.yaml
         documentIndex: 0
@@ -373,7 +373,7 @@ tests:
           path: spec.template.spec.volumes[0].projected.sources[0].serviceAccountToken
           value:
             audience: "123"
-            expirationSeconds: 3600
+            expirationSeconds: 600
             path: token
   - it: Should still recreate a single replica when a disk sits next to the token
     set:

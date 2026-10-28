@@ -54,7 +54,7 @@ tests:
                 sources:
                   - serviceAccountToken:
                       audience: example.com
-                      expirationSeconds: 3600
+                      expirationSeconds: 600
                       path: token
       - template: cronJob.yaml
         documentIndex: 0

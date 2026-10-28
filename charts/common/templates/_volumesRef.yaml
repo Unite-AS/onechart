@@ -21,7 +21,7 @@ volumes:
     {{- if .subPath }}
     {{- fail (printf "volumes.%s: serviceAccountToken does not rotate with subPath" .name) }}
     {{- end }}
-    {{- $expirationSeconds := .serviceAccountToken.expirationSeconds | default 3600 | int }}
+    {{- $expirationSeconds := .serviceAccountToken.expirationSeconds | default 600 | int }}
     {{- if lt $expirationSeconds 600 }}
     {{- fail (printf "volumes.%s: serviceAccountToken.expirationSeconds must be at least 600" .name) }}
     {{- end }}
