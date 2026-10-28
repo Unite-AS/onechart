@@ -102,4 +102,65 @@ tests:
     asserts:
       - template: cronJob.yaml
         failedTemplate:
-          errorMessage: "volumes.token: serviceAccountToken.expirationSeconds must be at least 600"
+          errorPattern: "expirationSeconds"
+  - it: Should reject an empty service account token
+    set:
+      serviceAccount: my-job
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken: {}
+    asserts:
+      - template: cronJob.yaml
+        failedTemplate:
+          errorPattern: "audience"
+  - it: Should not create a claim for a service account token
+    set:
+      serviceAccount: my-job
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+    asserts:
+      - template: pvc.yaml
+        hasDocuments:
+          count: 0
+  - it: Should reject a service account token without an audience
+    set:
+      serviceAccount: my-job
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            expirationSeconds: 700
+    asserts:
+      - template: cronJob.yaml
+        failedTemplate:
+          errorPattern: "audience"
+  - it: Should reject unknown service account token fields
+    set:
+      serviceAccount: my-job
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+            audiences: other.example.com
+    asserts:
+      - template: cronJob.yaml
+        failedTemplate:
+          errorPattern: "audiences"
+  - it: Should reject a service account object for a service account token
+    set:
+      serviceAccount:
+        create: true
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+    asserts:
+      - template: cronJob.yaml
+        failedTemplate:
+          errorMessage: "volumes.token: serviceAccountToken requires serviceAccount"

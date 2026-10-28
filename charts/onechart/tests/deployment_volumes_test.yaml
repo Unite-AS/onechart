@@ -441,3 +441,54 @@ tests:
       - template: deployment.yaml
         failedTemplate:
           errorPattern: "expirationSeconds(: Must be greater than or equal to 600|': minimum: got 300, want 600)"
+  - it: Should reject a service account token with an empty audience
+    set:
+      serviceAccount: my-app
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: " "
+    asserts:
+      - template: deployment.yaml
+        failedTemplate:
+          errorPattern: "audience"
+  - it: Should reject a service account object for a service account token
+    set:
+      serviceAccount:
+        create: true
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+    asserts:
+      - template: deployment.yaml
+        failedTemplate:
+          errorMessage: "volumes.token: serviceAccountToken requires serviceAccount"
+  - it: Should reject a service account token that expires after 2^32 seconds
+    set:
+      serviceAccount: my-app
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+            expirationSeconds: 99999999999
+    asserts:
+      - template: deployment.yaml
+        failedTemplate:
+          errorPattern: "expirationSeconds"
+  - it: Should reject a service account token file outside the mount
+    set:
+      serviceAccount: my-app
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+            path: ../token
+    asserts:
+      - template: deployment.yaml
+        failedTemplate:
+          errorPattern: "serviceAccountToken[./]path"

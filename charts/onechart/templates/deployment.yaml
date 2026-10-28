@@ -27,7 +27,7 @@ spec:
   {{- $strategyNotDefined := not .Values.strategy }}
   {{- $hasDiskVolume := false }}
   {{- range .Values.volumes }}
-  {{- if not .serviceAccountToken }}
+  {{- if not (hasKey . "serviceAccountToken") }}
   {{- $hasDiskVolume = true }}
   {{- end }}
   {{- end }}

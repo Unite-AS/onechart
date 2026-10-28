@@ -14,23 +14,39 @@ volumes:
     {{- else if .fileName }}
     configMap:
       name: {{ template "common.robustName" (printf "%s-%s" $.Release.Name .name) }}
-    {{- else if .serviceAccountToken }}
-    {{- if not $.Values.serviceAccount }}
+    {{- else if hasKey . "serviceAccountToken" }}
+    {{- $token := .serviceAccountToken }}
+    {{- if not (kindIs "map" $token) }}
+    {{- fail (printf "volumes.%s: serviceAccountToken must be a map with an audience" .name) }}
+    {{- end }}
+    {{- if not (and (kindIs "string" $.Values.serviceAccount) $.Values.serviceAccount) }}
     {{- fail (printf "volumes.%s: serviceAccountToken requires serviceAccount" .name) }}
     {{- end }}
     {{- if .subPath }}
     {{- fail (printf "volumes.%s: serviceAccountToken does not rotate with subPath" .name) }}
     {{- end }}
-    {{- $expirationSeconds := .serviceAccountToken.expirationSeconds | default 600 | int }}
-    {{- if lt $expirationSeconds 600 }}
-    {{- fail (printf "volumes.%s: serviceAccountToken.expirationSeconds must be at least 600" .name) }}
+    {{- /* An empty audience makes the API server issue a token for itself */}}
+    {{- $audience := $token.audience | default "" | toString }}
+    {{- if not (trim $audience) }}
+    {{- fail (printf "volumes.%s: serviceAccountToken.audience is required" .name) }}
+    {{- end }}
+    {{- $expirationSeconds := 600 }}
+    {{- if hasKey $token "expirationSeconds" }}
+    {{- $expirationSeconds = $token.expirationSeconds | int }}
+    {{- end }}
+    {{- if or (lt $expirationSeconds 600) (gt $expirationSeconds 4294967296) }}
+    {{- fail (printf "volumes.%s: serviceAccountToken.expirationSeconds must be between 600 and 4294967296" .name) }}
+    {{- end }}
+    {{- $tokenPath := $token.path | default "token" | toString }}
+    {{- if or (hasPrefix "/" $tokenPath) (has ".." (splitList "/" $tokenPath)) }}
+    {{- fail (printf "volumes.%s: serviceAccountToken.path must be relative and must not contain '..'" .name) }}
     {{- end }}
     projected:
       sources:
         - serviceAccountToken:
-            audience: {{ .serviceAccountToken.audience | quote }}
+            audience: {{ $audience | quote }}
             expirationSeconds: {{ $expirationSeconds }}
-            path: {{ .serviceAccountToken.path | default "token" | quote }}
+            path: {{ $tokenPath | quote }}
     {{- else if .hostPath }}
     hostPath:
       path: {{ .hostPath.path }}

@@ -94,7 +94,7 @@
         "type": "object",
         "anyOf": [
           {
-            "id": "#/properties/volumes/oneOf/0",
+            "id": "#/properties/initcontainers/anyOf/0",
             "title": "InitContainer",
             "type": "object",
             "properties": {
@@ -1008,7 +1008,7 @@
         "type": "object",
         "anyOf": [
           {
-            "id": "#/properties/volumes/oneOf/0",
+            "id": "#/properties/volumes/anyOf/0",
             "title": "Volume",
             "type": "object",
             "properties": {
@@ -1054,7 +1054,7 @@
             ]
           },
           {
-            "id": "#/properties/volumes/oneOf/1",
+            "id": "#/properties/volumes/anyOf/1",
             "title": "Use an existing volume claim",
             "type": "object",
             "properties": {
@@ -1084,7 +1084,7 @@
             ]
           },
           {
-            "id": "#/properties/volumes/oneOf/2",
+            "id": "#/properties/volumes/anyOf/2",
             "title": "Use a path from the host",
             "type": "object",
             "properties": {
@@ -1137,7 +1137,7 @@
             ]
           },
           {
-            "id": "#/properties/volumes/oneOf/3",
+            "id": "#/properties/volumes/anyOf/3",
             "title": "Use an ephemeral volume",
             "type": "object",
             "properties": {
@@ -1166,7 +1166,7 @@
             ]
           },
           {
-            "id": "#/properties/volumes/oneOf/4",
+            "id": "#/properties/volumes/anyOf/4",
             "title": "Mount an existing configMap as a file",
             "type": "object",
             "properties": {
@@ -1195,7 +1195,7 @@
             ]
           },
           {
-            "id": "#/properties/volumes/oneOf/5",
+            "id": "#/properties/volumes/anyOf/5",
             "title": "Custom string to mount as a file",
             "type": "object",
             "properties": {
@@ -1223,7 +1223,7 @@
             ]
           },
           {
-            "id": "#/properties/volumes/oneOf/6",
+            "id": "#/properties/volumes/anyOf/6",
             "title": "Mount an existing secret as a file",
             "type": "object",
             "properties": {
@@ -1252,7 +1252,7 @@
             ]
           },
           {
-            "id": "#/properties/volumes/oneOf/7",
+            "id": "#/properties/volumes/anyOf/7",
             "title": "Mount a projected service account token",
             "type": "object",
             "properties": {
@@ -1267,19 +1267,30 @@
               },
               "serviceAccountToken": {
                 "type": "object",
+                "title": "Service account token",
+                "description": "Kubelet rotates the token at 80% of its lifetime. Clients must read the file again for each use; do not cache it for the full lifetime.",
                 "properties": {
                   "audience": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "\\S",
+                    "description": "Required. An empty audience gives a token that the Kubernetes API server accepts."
                   },
                   "expirationSeconds": {
                     "type": "integer",
                     "minimum": 600,
+                    "maximum": 4294967296,
                     "default": 600,
                     "description": "The shortest lifetime the API server accepts. Kubernetes itself defaults to 3600."
                   },
                   "path": {
                     "type": "string",
-                    "default": "token"
+                    "minLength": 1,
+                    "default": "token",
+                    "description": "The file name inside the mount directory. Must be relative and must not contain '..'.",
+                    "not": {
+                      "pattern": "(^/|(^|/)\\.\\.(/|$))"
+                    }
                   }
                 },
                 "required": [
