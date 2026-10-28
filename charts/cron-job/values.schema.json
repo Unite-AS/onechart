@@ -448,8 +448,8 @@
               "audience": {
                 "type": "string",
                 "minLength": 1,
-                "pattern": "\\S",
-                "description": "Required. An empty audience gives a token that the Kubernetes API server accepts."
+                "pattern": "^\\S(.*\\S)?$",
+                "description": "Required, with no whitespace at the start or end. An empty audience gives a token that the Kubernetes API server accepts."
               },
               "expirationSeconds": {
                 "type": "integer",
@@ -462,9 +462,9 @@
                 "type": "string",
                 "minLength": 1,
                 "default": "token",
-                "description": "The file name inside the mount directory. Must be relative and must not contain '..'.",
+                "description": "The file name inside the mount directory. Must be relative, must not start with '..' and must not contain '..'.",
                 "not": {
-                  "pattern": "(^/|(^|/)\\.\\.(/|$))"
+                  "pattern": "(^/|^\\.\\.|/\\.\\.(/|$))"
                 }
               }
             },

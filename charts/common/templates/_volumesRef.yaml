@@ -3,6 +3,14 @@
 volumes:
   {{- range .Values.volumes }}
   - name: {{ .name }}
+    {{- $volume := . }}
+    {{- if hasKey $volume "serviceAccountToken" }}
+    {{- range $key := list "emptyDir" "existingConfigMap" "existingSecret" "fileName" "hostPath" "existingClaim" }}
+    {{- if hasKey $volume $key }}
+    {{- fail (printf "volumes.%s: serviceAccountToken cannot be combined with %s" $volume.name $key) }}
+    {{- end }}
+    {{- end }}
+    {{- end }}
     {{- if .emptyDir }}
     emptyDir: {}
     {{- else if .existingConfigMap }}
@@ -30,6 +38,10 @@ volumes:
     {{- if not (trim $audience) }}
     {{- fail (printf "volumes.%s: serviceAccountToken.audience is required" .name) }}
     {{- end }}
+    {{- /* The token aud claim must match the verifier exactly */}}
+    {{- if ne $audience (trim $audience) }}
+    {{- fail (printf "volumes.%s: serviceAccountToken.audience must not start or end with whitespace" .name) }}
+    {{- end }}
     {{- $expirationSeconds := 600 }}
     {{- if hasKey $token "expirationSeconds" }}
     {{- $expirationSeconds = $token.expirationSeconds | int }}
@@ -38,8 +50,9 @@ volumes:
     {{- fail (printf "volumes.%s: serviceAccountToken.expirationSeconds must be between 600 and 4294967296" .name) }}
     {{- end }}
     {{- $tokenPath := $token.path | default "token" | toString }}
-    {{- if or (hasPrefix "/" $tokenPath) (has ".." (splitList "/" $tokenPath)) }}
-    {{- fail (printf "volumes.%s: serviceAccountToken.path must be relative and must not contain '..'" .name) }}
+    {{- /* The API server also reserves names that start with '..' (kubelet uses ..data) */}}
+    {{- if or (hasPrefix "/" $tokenPath) (hasPrefix ".." $tokenPath) (has ".." (splitList "/" $tokenPath)) }}
+    {{- fail (printf "volumes.%s: serviceAccountToken.path must be relative, must not start with '..' and must not contain '..'" .name) }}
     {{- end }}
     projected:
       sources:

@@ -452,7 +452,7 @@ tests:
     asserts:
       - template: deployment.yaml
         failedTemplate:
-          errorPattern: "audience"
+          errorPattern: "serviceAccountToken[./]audience"
   - it: Should reject a service account object for a service account token
     set:
       serviceAccount:
@@ -488,6 +488,31 @@ tests:
           serviceAccountToken:
             audience: example.com
             path: ../token
+    asserts:
+      - template: deployment.yaml
+        failedTemplate:
+          errorPattern: "serviceAccountToken[./]path"
+  - it: Should reject a service account token audience with surrounding whitespace
+    set:
+      serviceAccount: my-app
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: " example.com "
+    asserts:
+      - template: deployment.yaml
+        failedTemplate:
+          errorPattern: "serviceAccountToken[./]audience"
+  - it: Should reject a service account token file name that starts with ..
+    set:
+      serviceAccount: my-app
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+            path: ..token
     asserts:
       - template: deployment.yaml
         failedTemplate:
