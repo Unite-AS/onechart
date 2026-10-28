@@ -321,3 +321,199 @@ tests:
           value:
           - name: shared-volume
             mountPath: /data      
+  - it: Should project a service account token
+    set:
+      serviceAccount: my-app
+      volumes:
+        - name: anthropic-token
+          path: /var/run/secrets/anthropic.com
+          serviceAccountToken:
+            audience: https://api.anthropic.com
+            expirationSeconds: 1200
+            path: identity
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.volumes
+          value:
+            - name: anthropic-token
+              projected:
+                sources:
+                  - serviceAccountToken:
+                      audience: https://api.anthropic.com
+                      expirationSeconds: 1200
+                      path: identity
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[0].volumeMounts
+          value:
+            - name: anthropic-token
+              mountPath: /var/run/secrets/anthropic.com
+      - template: deployment.yaml
+        documentIndex: 0
+        notExists:
+          path: spec.strategy
+      - template: pvc.yaml
+        hasDocuments:
+          count: 0
+  - it: Should default the service account token expiry and file name
+    set:
+      serviceAccount: my-app
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: "123"
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.volumes[0].projected.sources[0].serviceAccountToken
+          value:
+            audience: "123"
+            expirationSeconds: 600
+            path: token
+  - it: Should still recreate a single replica when a disk sits next to the token
+    set:
+      serviceAccount: my-app
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+        - name: data
+          path: /data
+          size: 1Gi
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.strategy.type
+          value: Recreate
+  - it: Should require a service account for a service account token
+    set:
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+    asserts:
+      - template: deployment.yaml
+        failedTemplate:
+          errorMessage: "volumes.token: serviceAccountToken requires serviceAccount"
+  - it: Should reject a service account token without an audience
+    set:
+      serviceAccount: my-app
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            expirationSeconds: 600
+    asserts:
+      - template: deployment.yaml
+        failedTemplate:
+          errorPattern: "audience is required|missing property 'audience'"
+  - it: Should reject a service account token mounted with subPath
+    set:
+      serviceAccount: my-app
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com/token
+          subPath: token
+          serviceAccountToken:
+            audience: example.com
+    asserts:
+      - template: deployment.yaml
+        failedTemplate:
+          errorPattern: "(?i)additional propert(y|ies) '?subPath'? (is )?not allowed"
+  - it: Should reject a service account token that expires in under 600 seconds
+    set:
+      serviceAccount: my-app
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+            expirationSeconds: 300
+    asserts:
+      - template: deployment.yaml
+        failedTemplate:
+          errorPattern: "expirationSeconds(: Must be greater than or equal to 600|': minimum: got 300, want 600)"
+  - it: Should reject a service account token with an empty audience
+    set:
+      serviceAccount: my-app
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: " "
+    asserts:
+      - template: deployment.yaml
+        failedTemplate:
+          errorPattern: "serviceAccountToken[./]audience"
+  - it: Should reject a service account object for a service account token
+    set:
+      serviceAccount:
+        create: true
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+    asserts:
+      - template: deployment.yaml
+        failedTemplate:
+          errorMessage: "volumes.token: serviceAccountToken requires serviceAccount"
+  - it: Should reject a service account token that expires after 2^32 seconds
+    set:
+      serviceAccount: my-app
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+            expirationSeconds: 99999999999
+    asserts:
+      - template: deployment.yaml
+        failedTemplate:
+          errorPattern: "expirationSeconds"
+  - it: Should reject a service account token file outside the mount
+    set:
+      serviceAccount: my-app
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+            path: ../token
+    asserts:
+      - template: deployment.yaml
+        failedTemplate:
+          errorPattern: "serviceAccountToken[./]path"
+  - it: Should reject a service account token audience with surrounding whitespace
+    set:
+      serviceAccount: my-app
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: " example.com "
+    asserts:
+      - template: deployment.yaml
+        failedTemplate:
+          errorPattern: "serviceAccountToken[./]audience"
+  - it: Should reject a service account token file name that starts with ..
+    set:
+      serviceAccount: my-app
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+            path: ..token
+    asserts:
+      - template: deployment.yaml
+        failedTemplate:
+          errorPattern: "serviceAccountToken[./]path"

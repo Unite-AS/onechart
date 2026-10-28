@@ -46,3 +46,13 @@ tests:
     asserts:
       - hasDocuments:
           count: 0
+  - it: Should not generate a claim when using an existing secret
+    set:
+      volumes:
+        - name: creds
+          path: /creds/app.creds
+          subPath: app.creds
+          existingSecret: my-secret
+    asserts:
+      - hasDocuments:
+          count: 0

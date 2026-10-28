@@ -439,6 +439,39 @@
             "title": "Storage Class",
             "description": "The slug indicating the disk type in your cloud provider. `standard` on Google Cloud, `default` on Azure; `do-block-storage` on Digital Ocean",
             "default": ""
+          },
+          "serviceAccountToken": {
+            "type": "object",
+            "title": "Service account token",
+            "description": "Kubelet rotates the token at 80% of its lifetime. Clients must read the file again for each use; do not cache it for the full lifetime.",
+            "properties": {
+              "audience": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^\\S(.*\\S)?$",
+                "description": "Required, with no whitespace at the start or end. An empty audience gives a token that the Kubernetes API server accepts."
+              },
+              "expirationSeconds": {
+                "type": "integer",
+                "minimum": 600,
+                "maximum": 4294967296,
+                "default": 600,
+                "description": "The shortest lifetime the API server accepts. Kubernetes itself defaults to 3600."
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1,
+                "default": "token",
+                "description": "The file name inside the mount directory. Must be relative, must not start with '..' and must not contain '..'.",
+                "not": {
+                  "pattern": "(^/|^\\.\\.|/\\.\\.(/|$))"
+                }
+              }
+            },
+            "required": [
+              "audience"
+            ],
+            "additionalProperties": false
           }
         }
       }

@@ -25,7 +25,13 @@ spec:
       {{- include "helm-chart.selectorLabels" . | nindent 6 }}
   {{- $singleReplica := eq (include "helm-chart.effectiveMinReplicas" . | int64) 1 }}
   {{- $strategyNotDefined := not .Values.strategy }}
-  {{- if and (and .Values.volumes $singleReplica) $strategyNotDefined}}
+  {{- $needsRecreate := false }}
+  {{- range .Values.volumes }}
+  {{- if not (hasKey . "serviceAccountToken") }}
+  {{- $needsRecreate = true }}
+  {{- end }}
+  {{- end }}
+  {{- if and (and $needsRecreate $singleReplica) $strategyNotDefined}}
   strategy:
     type: Recreate
   {{- end }}

@@ -35,3 +35,170 @@ tests:
             - name: data
               persistentVolumeClaim:
                 claimName: RELEASE-NAME-data
+  - it: Should project a service account token
+    set:
+      serviceAccount: my-job
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+    asserts:
+      - template: cronJob.yaml
+        documentIndex: 0
+        equal:
+          path: spec.jobTemplate.spec.template.spec.volumes
+          value:
+            - name: token
+              projected:
+                sources:
+                  - serviceAccountToken:
+                      audience: example.com
+                      expirationSeconds: 600
+                      path: token
+      - template: cronJob.yaml
+        documentIndex: 0
+        equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].volumeMounts
+          value:
+            - name: token
+              mountPath: /var/run/secrets/example.com
+      - template: pvc.yaml
+        hasDocuments:
+          count: 0
+  - it: Should require a service account for a service account token
+    set:
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+    asserts:
+      - template: cronJob.yaml
+        failedTemplate:
+          errorMessage: "volumes.token: serviceAccountToken requires serviceAccount"
+  - it: Should reject a service account token mounted with subPath
+    set:
+      serviceAccount: my-job
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com/token
+          subPath: token
+          serviceAccountToken:
+            audience: example.com
+    asserts:
+      - template: cronJob.yaml
+        failedTemplate:
+          errorMessage: "volumes.token: serviceAccountToken does not rotate with subPath"
+  - it: Should reject a service account token that expires in under 600 seconds
+    set:
+      serviceAccount: my-job
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+            expirationSeconds: 300
+    asserts:
+      - template: cronJob.yaml
+        failedTemplate:
+          errorPattern: "expirationSeconds"
+  - it: Should reject an empty service account token
+    set:
+      serviceAccount: my-job
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken: {}
+    asserts:
+      - template: cronJob.yaml
+        failedTemplate:
+          errorPattern: "audience is required|missing property 'audience'"
+  - it: Should not create a claim for a service account token
+    set:
+      serviceAccount: my-job
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+    asserts:
+      - template: pvc.yaml
+        hasDocuments:
+          count: 0
+  - it: Should reject a service account token without an audience
+    set:
+      serviceAccount: my-job
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            expirationSeconds: 700
+    asserts:
+      - template: cronJob.yaml
+        failedTemplate:
+          errorPattern: "audience is required|missing property 'audience'"
+  - it: Should reject unknown service account token fields
+    set:
+      serviceAccount: my-job
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+            audiences: other.example.com
+    asserts:
+      - template: cronJob.yaml
+        failedTemplate:
+          errorPattern: "audiences"
+  - it: Should reject a service account object for a service account token
+    set:
+      serviceAccount:
+        create: true
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+    asserts:
+      - template: cronJob.yaml
+        failedTemplate:
+          errorMessage: "volumes.token: serviceAccountToken requires serviceAccount"
+  - it: Should reject a service account token combined with another volume type
+    set:
+      serviceAccount: my-job
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          existingSecret: my-secret
+          serviceAccountToken:
+            audience: example.com
+    asserts:
+      - template: cronJob.yaml
+        failedTemplate:
+          errorMessage: "volumes.token: serviceAccountToken cannot be combined with existingSecret"
+  - it: Should reject a service account token audience with surrounding whitespace
+    set:
+      serviceAccount: my-job
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: "example.com "
+    asserts:
+      - template: cronJob.yaml
+        failedTemplate:
+          errorPattern: "serviceAccountToken[./]audience"
+  - it: Should reject a service account token file name that starts with ..
+    set:
+      serviceAccount: my-job
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+            path: ..data
+    asserts:
+      - template: cronJob.yaml
+        failedTemplate:
+          errorPattern: "serviceAccountToken[./]path"
