@@ -35,3 +35,71 @@ tests:
             - name: data
               persistentVolumeClaim:
                 claimName: RELEASE-NAME-data
+  - it: Should project a service account token
+    set:
+      serviceAccount: my-job
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+    asserts:
+      - template: cronJob.yaml
+        documentIndex: 0
+        equal:
+          path: spec.jobTemplate.spec.template.spec.volumes
+          value:
+            - name: token
+              projected:
+                sources:
+                  - serviceAccountToken:
+                      audience: example.com
+                      expirationSeconds: 3600
+                      path: token
+      - template: cronJob.yaml
+        documentIndex: 0
+        equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].volumeMounts
+          value:
+            - name: token
+              mountPath: /var/run/secrets/example.com
+      - template: pvc.yaml
+        hasDocuments:
+          count: 0
+  - it: Should require a service account for a service account token
+    set:
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+    asserts:
+      - template: cronJob.yaml
+        failedTemplate:
+          errorMessage: "volumes.token: serviceAccountToken requires serviceAccount"
+  - it: Should reject a service account token mounted with subPath
+    set:
+      serviceAccount: my-job
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com/token
+          subPath: token
+          serviceAccountToken:
+            audience: example.com
+    asserts:
+      - template: cronJob.yaml
+        failedTemplate:
+          errorMessage: "volumes.token: serviceAccountToken does not rotate with subPath"
+  - it: Should reject a service account token that expires in under 600 seconds
+    set:
+      serviceAccount: my-job
+      volumes:
+        - name: token
+          path: /var/run/secrets/example.com
+          serviceAccountToken:
+            audience: example.com
+            expirationSeconds: 300
+    asserts:
+      - template: cronJob.yaml
+        failedTemplate:
+          errorMessage: "volumes.token: serviceAccountToken.expirationSeconds must be at least 600"

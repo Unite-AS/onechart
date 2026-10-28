@@ -1273,6 +1273,7 @@
                   },
                   "expirationSeconds": {
                     "type": "integer",
+                    "minimum": 600,
                     "default": 3600
                   },
                   "path": {
@@ -1282,14 +1283,16 @@
                 },
                 "required": [
                   "audience"
-                ]
+                ],
+                "additionalProperties": false
               }
             },
             "required": [
               "name",
               "path",
               "serviceAccountToken"
-            ]
+            ],
+            "additionalProperties": false
           }
         ]
       }

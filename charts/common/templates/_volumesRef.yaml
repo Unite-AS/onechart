@@ -15,12 +15,22 @@ volumes:
     configMap:
       name: {{ template "common.robustName" (printf "%s-%s" $.Release.Name .name) }}
     {{- else if .serviceAccountToken }}
+    {{- if not $.Values.serviceAccount }}
+    {{- fail (printf "volumes.%s: serviceAccountToken requires serviceAccount" .name) }}
+    {{- end }}
+    {{- if .subPath }}
+    {{- fail (printf "volumes.%s: serviceAccountToken does not rotate with subPath" .name) }}
+    {{- end }}
+    {{- $expirationSeconds := .serviceAccountToken.expirationSeconds | default 3600 | int }}
+    {{- if lt $expirationSeconds 600 }}
+    {{- fail (printf "volumes.%s: serviceAccountToken.expirationSeconds must be at least 600" .name) }}
+    {{- end }}
     projected:
       sources:
         - serviceAccountToken:
-            audience: {{ .serviceAccountToken.audience }}
-            expirationSeconds: {{ .serviceAccountToken.expirationSeconds | default 3600 }}
-            path: {{ .serviceAccountToken.path | default "token" }}
+            audience: {{ .serviceAccountToken.audience | quote }}
+            expirationSeconds: {{ $expirationSeconds }}
+            path: {{ .serviceAccountToken.path | default "token" | quote }}
     {{- else if .hostPath }}
     hostPath:
       path: {{ .hostPath.path }}
