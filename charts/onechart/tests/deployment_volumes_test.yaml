@@ -414,7 +414,7 @@ tests:
     asserts:
       - template: deployment.yaml
         failedTemplate:
-          errorPattern: "audience is required"
+          errorPattern: "audience is required|missing property 'audience'"
   - it: Should reject a service account token mounted with subPath
     set:
       serviceAccount: my-app
@@ -427,7 +427,7 @@ tests:
     asserts:
       - template: deployment.yaml
         failedTemplate:
-          errorPattern: "Additional property subPath is not allowed"
+          errorPattern: "(?i)additional propert(y|ies) '?subPath'? (is )?not allowed"
   - it: Should reject a service account token that expires in under 600 seconds
     set:
       serviceAccount: my-app
@@ -440,4 +440,4 @@ tests:
     asserts:
       - template: deployment.yaml
         failedTemplate:
-          errorPattern: "expirationSeconds: Must be greater than or equal to 600"
+          errorPattern: "expirationSeconds(: Must be greater than or equal to 600|': minimum: got 300, want 600)"
