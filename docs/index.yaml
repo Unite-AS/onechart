@@ -8,7 +8,7 @@ entries:
       repository: file://../common
       version: 1.0.5
     description: A generic Helm chart for your application deployments.
-    digest: 8ccd8719dfbd23fc1bbe955403543bd9532e6181b2aa51337f7934b28072d56e
+    digest: 0d16b3a54a58a87720f37d47608036ca94e8448c04ddcf9cb021ff6ba94b821c
     name: cron-job
     type: application
     urls:
@@ -529,7 +529,7 @@ entries:
       repository: file://../common
       version: 1.0.5
     description: A generic Helm chart for your application deployments.
-    digest: 83d5fccced7b37a5bfd820991d3e7a53394fb915773a2bb5a90b75b2519cbcf1
+    digest: 129e39c4b97c324d4ab8b6b4c4f0a5c487004daa0ca73e0db32765b529f67838
     name: onechart
     type: application
     urls:
