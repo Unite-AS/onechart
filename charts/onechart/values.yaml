@@ -83,6 +83,24 @@ resources:
     cpu: "200m"
     memory: "200Mi"
 
+# Default resources for init containers and the sidecar.
+# Set `resources` on an init container or on `sidecar` to replace these.
+initContainerResources:
+  requests:
+    cpu: "50m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+
+sidecarResources:
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
+  limits:
+    cpu: "200m"
+    memory: "256Mi"
+
 nodeSelector: {}
 
 tolerations:

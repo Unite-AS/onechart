@@ -61,3 +61,68 @@ tests:
         equal:
           path: spec.template.spec.containers[1].securityContext.allowPrivilegeEscalation
           value: true
+  - it: Should set readOnlyRootFilesystem by default for sidecar container
+    set:
+      sidecar:
+        repository: debian
+        tag: stable-slim
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[1].securityContext.readOnlyRootFilesystem
+          value: true
+  - it: Should not duplicate keys when securityContext sets runAsGroup and readOnlyRootFilesystem
+    set:
+      sidecar:
+        repository: debian
+        tag: stable-slim
+      securityContext:
+        runAsGroup: 1000
+        readOnlyRootFilesystem: false
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[1].securityContext
+          value:
+            runAsNonRoot: true
+            runAsUser: 621
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+  - it: Should set default resources for sidecar container
+    set:
+      sidecar:
+        repository: debian
+        tag: stable-slim
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[1].resources
+          value:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+  - it: Should use sidecar.resources when set
+    set:
+      sidecar:
+        repository: debian
+        tag: stable-slim
+        resources:
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[1].resources
+          value:
+            limits:
+              cpu: "1"
+              memory: "1Gi"

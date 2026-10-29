@@ -99,7 +99,7 @@ tests:
             limits:
               cpu: "2000m"
               memory: "400Mi"
-  - it: should not set resources if not specified
+  - it: should set default resources if not specified
     set:
       initContainers:
         - name: native-sidecar
@@ -108,8 +108,33 @@ tests:
     asserts:
       - template: deployment.yaml
         documentIndex: 0
-        isNull:
+        equal:
           path: spec.template.spec.initContainers[0].resources
+          value:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+  - it: should use initContainerResources as the default
+    set:
+      initContainerResources:
+        limits:
+          cpu: "1"
+          memory: "1Gi"
+      initContainers:
+        - name: pod1
+          image: nginx
+          tag: 1.2.2
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.initContainers[0].resources.limits
+          value:
+            cpu: "1"
+            memory: "1Gi"
   - it: Should allow overriding allowPrivilegeEscalation for init containers
     set:
       initContainers:
@@ -124,3 +149,146 @@ tests:
         equal:
           path: spec.template.spec.initContainers[0].securityContext.allowPrivilegeEscalation
           value: true
+  - it: Should merge a partial security context with the defaults
+    set:
+      initContainers:
+        - name: copier
+          image: nginx
+          tag: 1.2.2
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.initContainers[0].securityContext
+          value:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+  - it: Should allow overriding readOnlyRootFilesystem for init containers
+    set:
+      initContainers:
+        - name: pod1
+          image: nginx
+          tag: 1.2.2
+          securityContext:
+            readOnlyRootFilesystem: false
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.initContainers[0].securityContext.readOnlyRootFilesystem
+          value: false
+  - it: Should keep extra security context keys for init containers
+    set:
+      initContainers:
+        - name: pod1
+          image: nginx
+          tag: 1.2.2
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.initContainers[0].securityContext.capabilities
+          value:
+            drop: ["ALL"]
+  - it: Should mount init- emptyDir volumes in init containers only
+    set:
+      volumes:
+        - name: init-tmp
+          path: /tmp
+          emptyDir: true
+      initContainers:
+        - name: pod1
+          image: nginx
+          tag: 1.2.2
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        contains:
+          path: spec.template.spec.initContainers[0].volumeMounts
+          content:
+            mountPath: /tmp
+            name: init-tmp
+      - template: deployment.yaml
+        documentIndex: 0
+        contains:
+          path: spec.template.spec.volumes
+          content:
+            name: init-tmp
+            emptyDir: {}
+      - template: deployment.yaml
+        documentIndex: 0
+        isNullOrEmpty:
+          path: spec.template.spec.containers[0].volumeMounts
+  - it: Should mount opted-in volumes in the init container
+    set:
+      volumes:
+        - name: app-data
+          path: /data
+          subPath: data
+          size: 1Gi
+        - name: other
+          path: /other
+          emptyDir: true
+      initContainers:
+        - name: copier
+          image: nginx
+          tag: 1.2.2
+          volumes:
+            - app-data
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.initContainers[0].volumeMounts
+          value:
+            - mountPath: /data
+              name: app-data
+              subPath: data
+      - template: deployment.yaml
+        documentIndex: 0
+        contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: app-data
+            mountPath: /data
+            subPath: data
+  - it: Should not mount volumes that are not opted in
+    set:
+      volumes:
+        - name: app-data
+          path: /data
+          size: 1Gi
+      initContainers:
+        - name: pod1
+          image: nginx
+          tag: 1.2.2
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        isNullOrEmpty:
+          path: spec.template.spec.initContainers[0].volumeMounts
+  - it: Should fail when an opted-in volume does not exist
+    set:
+      volumes:
+        - name: app-data
+          path: /data
+          size: 1Gi
+      initContainers:
+        - name: copier
+          image: nginx
+          tag: 1.2.2
+          volumes:
+            - missing
+    asserts:
+      - template: deployment.yaml
+        failedTemplate:
+          errorMessage: "initContainers.copier.volumes: missing is not in volumes"

@@ -579,6 +579,20 @@ Init containers run to completion before the main container starts. They share e
 
 > Volumes with names prefixed `shared-` or `init-` are automatically mounted into init containers.
 
+To mount other volumes from `volumes` into an init container, list their names:
+
+```yaml
+initContainers:
+  - name: copier
+    image: myapp
+    tag: "1.2.3"
+    command: "cp -f /opt/app/seed.json /data/"
+    volumes:
+      - app-data
+```
+
+Init containers default to a read-only root file system, non-root user and `initContainerResources`. Write to a mounted volume, not to the root file system.
+
 
 ## Sidecar Container
 ```yaml

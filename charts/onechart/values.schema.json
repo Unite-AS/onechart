@@ -119,6 +119,14 @@
               "command": {
                 "type": "string",
                 "title": "Command"
+              },
+              "volumes": {
+                "type": "array",
+                "title": "Volumes",
+                "description": "Names of entries in volumes to mount in this init container",
+                "items": {
+                  "type": "string"
+                }
               }
             },
             "required": [
