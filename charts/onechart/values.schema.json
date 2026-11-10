@@ -826,6 +826,14 @@
       },
       "additionalProperties": false
     },
+    "externalSecretFormat": {
+      "$id": "#/properties/externalSecretFormat",
+      "type": "string",
+      "title": "ExternalSecret format",
+      "description": "Platform-controlled. json = 1 vault secret with a JSON object (dataFrom.extract); keys = 1 vault secret per key, tagged k8s-secret=<key> (dataFrom.find).",
+      "default": "json",
+      "enum": ["json", "keys"]
+    },
     "secret": {
       "$id": "#/properties/secret",
       "type": "object",

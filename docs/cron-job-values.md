@@ -158,6 +158,18 @@ secretStoreRefOverride:
 | `secretStoreRefOverride.name` | `""` | Empty = no override |
 | `secretStoreRefOverride.kind` | `SecretStore` | `SecretStore` or `ClusterSecretStore` |
 
+### Platform format: `externalSecretFormat`
+
+Also set by the platform. It selects the layout of the secrets in the vault:
+
+| Value | Vault layout | ExternalSecret |
+|-------|--------------|----------------|
+| `json` (default) | 1 secret per ExternalSecret; the value is a JSON object (`{"DB_HOST": "...", ...}`) | `dataFrom.extract` |
+| `keys` | 1 secret per key, tagged `k8s-secret=<key of the ExternalSecret>` | `dataFrom.find` by tag, with a rewrite `-` to `_` |
+
+Key Vault secret names allow only letters, digits and `-`, so with `keys` the env var `DB_HOST` is stored as `DB-HOST`.
+The Kubernetes Secret gets the same keys and values in both formats.
+
 
 ## Volumes
 ### Persistent Volume Claim (new PVC)

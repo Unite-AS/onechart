@@ -166,6 +166,11 @@ secretStoreRefOverride:
   name: ""
   kind: SecretStore
 
+# Set by the platform, not by app values. Layout of the secrets in the vault:
+#   json: 1 vault secret per ExternalSecret, with a JSON object as value (dataFrom.extract)
+#   keys: 1 vault secret per key, tagged k8s-secret=<key of the ExternalSecret>; names use "-" for "_" (dataFrom.find)
+externalSecretFormat: json
+
 externalSecret:
   enabled: false
   # Defaults to secretName when omitted.
