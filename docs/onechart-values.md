@@ -754,3 +754,20 @@ externalSecrets:
 | `externalSecrets[].secretStoreRef.kind` | No | Defaults to `ClusterSecretStore` |
 
 Legacy single-resource configuration via `externalSecret.enabled` + `secretName` is still supported for backwards compatibility.
+
+### Platform override: `secretStoreRefOverride`
+
+The platform sets this value in the ApplicationSet (Helm parameters or `values:`), not in the app's own values.
+When `secretStoreRefOverride.name` is set, every `ExternalSecret` from `externalSecrets` and `externalSecret`
+uses that store, whatever its own `secretStoreRef` says. This moves an app to its per-app Key Vault without a change in the app repo.
+
+```yaml
+secretStoreRefOverride:
+  name: my-app-kv            # per-app SecretStore in the app namespace
+  kind: SecretStore          # or ClusterSecretStore for PR previews (my-app-kv-preview)
+```
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `secretStoreRefOverride.name` | No | Empty (default) = no override |
+| `secretStoreRefOverride.kind` | No | `SecretStore` (default) or `ClusterSecretStore` |

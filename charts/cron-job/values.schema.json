@@ -301,13 +301,33 @@
             },
             "kind": {
               "type": "string",
-              "default": "ClusterSecretStore"
+              "default": "ClusterSecretStore",
+              "enum": ["SecretStore", "ClusterSecretStore"]
             }
           },
           "additionalProperties": true
         }
       },
       "additionalProperties": true
+    },
+    "secretStoreRefOverride": {
+      "$id": "#/properties/secretStoreRefOverride",
+      "type": "object",
+      "title": "Secret store override",
+      "description": "Platform-controlled. When name is set, every ExternalSecret uses this store instead of its own secretStoreRef.",
+      "default": {},
+      "properties": {
+        "name": {
+          "type": "string",
+          "default": ""
+        },
+        "kind": {
+          "type": "string",
+          "default": "SecretStore",
+          "enum": ["SecretStore", "ClusterSecretStore"]
+        }
+      },
+      "additionalProperties": false
     },
     "externalSecrets": {
       "$id": "#/properties/externalSecrets",

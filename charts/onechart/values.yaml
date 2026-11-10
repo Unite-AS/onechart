@@ -159,6 +159,13 @@ podSpec: {}
 
 externalSecrets: []
 
+# Set by the platform (ApplicationSet Helm parameters), not by app values.
+# When name is set, every ExternalSecret above uses this store, whatever its own secretStoreRef says.
+# Used for the per-app Key Vaults: <app>-kv (SecretStore) or <app>-kv-preview (ClusterSecretStore).
+secretStoreRefOverride:
+  name: ""
+  kind: SecretStore
+
 externalSecret:
   enabled: false
   # Defaults to secretName when omitted.

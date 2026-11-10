@@ -143,6 +143,21 @@ externalSecret:
 
 If `externalSecrets` is empty and `externalSecret.enabled: true`, the chart maps this legacy shape into a single `externalSecrets` entry for backward compatibility.
 
+**Platform override (`secretStoreRefOverride`):**
+
+The platform sets this value in the ApplicationSet, not in the app's own values. When `secretStoreRefOverride.name` is set, every `ExternalSecret` uses that store, whatever its own `secretStoreRef` says.
+
+```yaml
+secretStoreRefOverride:
+  name: my-job-kv       # per-app SecretStore in the app namespace
+  kind: SecretStore     # or ClusterSecretStore
+```
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| `secretStoreRefOverride.name` | `""` | Empty = no override |
+| `secretStoreRefOverride.kind` | `SecretStore` | `SecretStore` or `ClusterSecretStore` |
+
 
 ## Volumes
 ### Persistent Volume Claim (new PVC)
