@@ -603,7 +603,38 @@ sidecar:
   command: envoy -c /etc/envoy/envoy.yaml
 ```
 
-Runs a second container alongside the main container in the same pod, sharing the same network namespace and volumes.
+Runs a second container alongside the main container in the same pod, sharing the same network namespace and volumes. The container name is `<release-name>-sidecar`.
+
+## Multiple Sidecar Containers
+```yaml
+sidecars:
+  - name: envoy
+    repository: envoyproxy/envoy
+    tag: v1.28.0
+    command: envoy -c /etc/envoy/envoy.yaml
+  - name: log-shipper
+    repository: fluent/fluent-bit
+    tag: "3.1"
+    imagePullPolicy: IfNotPresent
+    resources:
+      limits:
+        cpu: "100m"
+        memory: "128Mi"
+    securityContext:
+      readOnlyRootFilesystem: false
+```
+
+Each entry becomes one more container in the pod. `name`, `repository` and `tag` are required, and names must be unique. You can use `sidecar` and `sidecars` together: `sidecar` is rendered first.
+
+Each sidecar gets the same environment variables and volume mounts as the main container. Optional fields:
+
+| Field | Default |
+|---|---|
+| `shell` | top-level `shell` (`/bin/sh`) |
+| `command` | image entrypoint |
+| `imagePullPolicy` | Kubernetes default |
+| `resources` | `sidecarResources` |
+| `securityContext` | top-level `securityContext`, then non-root, read-only root file system, no privilege escalation |
 
 
 ## Command Override

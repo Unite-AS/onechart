@@ -2,6 +2,7 @@ suite: test deployment
 templates:
   - deployment.yaml
   - configmap.yaml
+  - rollout.yaml
 tests:
   - it: Should inject a sidecar if one is specified
     set:
@@ -126,3 +127,173 @@ tests:
             limits:
               cpu: "1"
               memory: "1Gi"
+  - it: Should render multiple sidecars from sidecars list
+    set:
+      sidecars:
+        - name: envoy
+          repository: envoyproxy/envoy
+          tag: v1.28.0
+        - name: shipper
+          repository: fluent/fluent-bit
+          tag: "3.1"
+          imagePullPolicy: Always
+          command: "fluent-bit -c /etc/fb.conf"
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        lengthEqual:
+          path: spec.template.spec.containers
+          count: 3
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[1].name
+          value: envoy
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[1].image
+          value: envoyproxy/envoy:v1.28.0
+      - template: deployment.yaml
+        documentIndex: 0
+        notExists:
+          path: spec.template.spec.containers[1].command
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[2].name
+          value: shipper
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[2].imagePullPolicy
+          value: Always
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[2].command
+          value:
+            - /bin/sh
+            - -c
+            - fluent-bit -c /etc/fb.conf
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[2].resources.limits.memory
+          value: "256Mi"
+  - it: Should render legacy sidecar first, then sidecars list
+    release:
+      name: my-app
+    set:
+      sidecar:
+        repository: debian
+        tag: stable-slim
+      sidecars:
+        - name: envoy
+          repository: envoyproxy/envoy
+          tag: v1.28.0
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[1].name
+          value: my-app-sidecar
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[2].name
+          value: envoy
+  - it: Should apply per-sidecar resources and securityContext
+    set:
+      securityContext:
+        runAsUser: 1000
+      sidecars:
+        - name: envoy
+          repository: envoyproxy/envoy
+          tag: v1.28.0
+          resources:
+            limits:
+              cpu: "1"
+          securityContext:
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[1].resources
+          value:
+            limits:
+              cpu: "1"
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[1].securityContext
+          value:
+            runAsNonRoot: true
+            runAsUser: 621
+            runAsGroup: 999
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+  - it: Should fall back to top-level securityContext for sidecars entries
+    set:
+      securityContext:
+        runAsUser: 1000
+      sidecars:
+        - name: envoy
+          repository: envoyproxy/envoy
+          tag: v1.28.0
+    asserts:
+      - template: deployment.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[1].securityContext.runAsUser
+          value: 1000
+  - it: Should fail when a sidecars entry has no name
+    set:
+      sidecars:
+        - repository: envoyproxy/envoy
+          tag: v1.28.0
+    asserts:
+      - template: deployment.yaml
+        failedTemplate:
+          errorPattern: "sidecars\\[0\\]: name is required"
+  - it: Should fail when a sidecars entry has no tag
+    set:
+      sidecars:
+        - name: envoy
+          repository: envoyproxy/envoy
+    asserts:
+      - template: deployment.yaml
+        failedTemplate:
+          errorPattern: "sidecars.envoy: repository and tag are required"
+  - it: Should fail on duplicate sidecar names
+    set:
+      sidecars:
+        - name: envoy
+          repository: envoyproxy/envoy
+          tag: v1.28.0
+        - name: envoy
+          repository: envoyproxy/envoy
+          tag: v1.29.0
+    asserts:
+      - template: deployment.yaml
+        failedTemplate:
+          errorPattern: "duplicate container name envoy"
+  - it: Should render sidecars in a Rollout
+    set:
+      rollout:
+        enabled: true
+      sidecars:
+        - name: envoy
+          repository: envoyproxy/envoy
+          tag: v1.28.0
+    asserts:
+      - template: rollout.yaml
+        documentIndex: 0
+        equal:
+          path: spec.template.spec.containers[1].name
+          value: envoy
