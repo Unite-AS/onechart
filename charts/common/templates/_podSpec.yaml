@@ -91,19 +91,34 @@ containers:
   - {{ toYaml $container | nindent 4 }}
     {{- include "common.envFromRef.tpl" . | nindent 4 }}
     {{- include "common.volumeMountsRef.tpl" . | nindent 4 }}
+  {{- $sidecars := list }}
   {{- if .Values.sidecar }}
-  - name: {{ template "robustName" .Release.Name }}-sidecar
-    {{- if .Values.securityContext }}
+  {{- $sidecars = append $sidecars (merge (dict "name" (printf "%s-sidecar" (include "robustName" .Release.Name))) .Values.sidecar) }}
+  {{- end }}
+  {{- $sidecars = concat $sidecars (.Values.sidecars | default list) }}
+  {{- $sidecarNames := list }}
+  {{- range $i, $sc := $sidecars }}
+  {{- if not $sc.name }}
+  {{- fail (printf "sidecars[%d]: name is required" $i) }}
+  {{- end }}
+  {{- if has $sc.name $sidecarNames }}
+  {{- fail (printf "sidecars: duplicate container name %s" $sc.name) }}
+  {{- end }}
+  {{- $sidecarNames = append $sidecarNames $sc.name }}
+  {{- if not (and $sc.repository $sc.tag) }}
+  {{- fail (printf "sidecars.%s: repository and tag are required" $sc.name) }}
+  {{- end }}
+  {{- $secCtx := $sc.securityContext | default $.Values.securityContext }}
+  - name: {{ $sc.name }}
+    {{- if $secCtx }}
     securityContext:
-      runAsNonRoot: {{ hasKey .Values.securityContext "runAsNonRoot" | ternary .Values.securityContext.runAsNonRoot true }}
-      runAsUser: {{ hasKey .Values.securityContext "runAsUser" | ternary .Values.securityContext.runAsUser 621 }}
-      runAsGroup: {{ hasKey .Values.securityContext "runAsGroup" | ternary .Values.securityContext.runAsGroup 999 }}
-      allowPrivilegeEscalation: {{ hasKey .Values.securityContext "allowPrivilegeEscalation" | ternary .Values.securityContext.allowPrivilegeEscalation false }}
-      readOnlyRootFilesystem: {{ hasKey .Values.securityContext "readOnlyRootFilesystem" | ternary .Values.securityContext.readOnlyRootFilesystem true }}
-      {{- range $key, $value := .Values.securityContext }}
-      {{- if not (has $key (list "runAsNonRoot" "runAsUser" "runAsGroup" "allowPrivilegeEscalation" "readOnlyRootFilesystem")) }}
-      {{ $key }}: {{ $value }}
-      {{- end }}
+      runAsNonRoot: {{ hasKey $secCtx "runAsNonRoot" | ternary $secCtx.runAsNonRoot true }}
+      runAsUser: {{ hasKey $secCtx "runAsUser" | ternary $secCtx.runAsUser 621 }}
+      runAsGroup: {{ hasKey $secCtx "runAsGroup" | ternary $secCtx.runAsGroup 999 }}
+      allowPrivilegeEscalation: {{ hasKey $secCtx "allowPrivilegeEscalation" | ternary $secCtx.allowPrivilegeEscalation false }}
+      readOnlyRootFilesystem: {{ hasKey $secCtx "readOnlyRootFilesystem" | ternary $secCtx.readOnlyRootFilesystem true }}
+      {{- with omit $secCtx "runAsNonRoot" "runAsUser" "runAsGroup" "allowPrivilegeEscalation" "readOnlyRootFilesystem" }}
+      {{- toYaml . | nindent 6 }}
       {{- end }}
     {{- else }}
     securityContext:
@@ -113,19 +128,22 @@ containers:
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
     {{- end }}
-    image: {{ .Values.sidecar.repository }}:{{ .Values.sidecar.tag }}
-    {{- with (.Values.sidecar.resources | default .Values.sidecarResources) }}
+    image: {{ $sc.repository }}:{{ $sc.tag }}
+    {{- with $sc.imagePullPolicy }}
+    imagePullPolicy: {{ . }}
+    {{- end }}
+    {{- with ($sc.resources | default $.Values.sidecarResources) }}
     resources:
     {{- toYaml . | nindent 6 }}
     {{- end }}
-    {{- if .Values.sidecar.command }}
+    {{- if $sc.command }}
     command:
-      - {{ .Values.sidecar.shell }}
+      - {{ $sc.shell | default $.Values.shell }}
       - -c
-      - {{ .Values.sidecar.command | quote }}
+      - {{ $sc.command | quote }}
     {{- end }}
-    {{- include "common.envFromRef.tpl" . | nindent 4 }}
-    {{- include "common.volumeMountsRef.tpl" . | nindent 4 }}
+    {{- include "common.envFromRef.tpl" $ | nindent 4 }}
+    {{- include "common.volumeMountsRef.tpl" $ | nindent 4 }}
   {{- end }}
 {{- include "common.volumesRef.tpl" . }}
 {{- with .Values.nodeSelector }}

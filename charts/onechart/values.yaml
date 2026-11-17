@@ -83,8 +83,8 @@ resources:
     cpu: "200m"
     memory: "200Mi"
 
-# Default resources for init containers and the sidecar.
-# Set `resources` on an init container or on `sidecar` to replace these.
+# Default resources for init containers and sidecars.
+# Set `resources` on an init container, on `sidecar` or on a `sidecars` entry to replace these.
 initContainerResources:
   requests:
     cpu: "50m"
@@ -100,6 +100,9 @@ sidecarResources:
   limits:
     cpu: "200m"
     memory: "256Mi"
+
+# Extra containers that run next to the main container. See docs/onechart-values.md.
+sidecars: []
 
 nodeSelector: {}
 
