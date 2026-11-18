@@ -647,6 +647,92 @@ shell: /bin/bash
 Overrides the container's default entrypoint/command. The command is passed to the specified `shell` with `-c`.
 
 
+## Jobs (migrations)
+```yaml
+jobs:
+  - name: database-migration
+    image:  # Only specify this block if it is DIFFERENT than the parent workload's image AND static (no build / version changes). Otherwise, platform will set this dynamically on build.
+      repository: flyway/flyway
+      tag: "10.0"
+    command: flyway migrate
+    restartPolicy: OnFailure
+    hook: PreSync
+    hookDeletePolicy: BeforeHookCreation
+    volumeMounts:
+      - name: flyway-config
+        mountPath: /etc/flyway
+        readOnly: true
+    volumes:
+      - name: flyway-config
+        secret:
+          secretName: database-migration-config
+```
+
+Each entry renders a `batch/v1` Job named from its required, unique `name`. Jobs default to an Argo CD `PreSync` hook with the `BeforeHookCreation` delete policy, so migrations can run before an application rollout. Set `hook: ""` to disable both generated hook annotations; custom annotations can be added with `annotations`.
+
+Jobs use a separate `jobResources` default (requests `25m` CPU / `256Mi` memory; limits `500m` CPU / `512Mi` memory). Per-job `resources` replaces that default. The image repository, tag, and pull policy fall back to the top-level `image` values. A string `command` is passed to `shell` (defaulting to the top-level `shell`) with `-c`; `args`, `env`, and `envFrom` use Kubernetes container fields directly.
+
+Jobs default to `OnFailure`, do not automount a service-account token, and use secure pod and container security contexts: non-root UID `621`, group `999`, read-only root filesystem, no privilege escalation, all capabilities dropped, and the `RuntimeDefault` seccomp profile. Context values can be overridden per job with `podSecurityContext` and `securityContext`. Setting a job's `serviceAccount` enables token automounting by default; `automountServiceAccountToken` can explicitly override that behavior.
+
+`tmpVolume` defaults to `true`, adding an `emptyDir` mounted at `/tmp`; set it to `false` when the container does not need writable temporary storage. `volumeMounts` and `volumes` are raw Kubernetes lists. `imagePullSecrets`, `nodeSelector`, and `tolerations` inherit their top-level chart values unless overridden on the job. `backoffLimit`, `activeDeadlineSeconds`, and `ttlSecondsAfterFinished` are copied to the Job when specified.
+
+Set `inheritEnv: true` to reuse the chart's standard environment sources (`vars`, secrets, and ConfigMaps). These references are opt-in because a `PreSync` Job may run before a ConfigMap or Secret managed by the same release has been created; create those resources before the hook or provide the job's `env` / `envFrom` explicitly.
+
+| Field | Required | Default |
+|---|---|---|
+| `name` | Yes | Job and container name; must be unique |
+| `image.repository` / `image.tag` / `image.pullPolicy` | No | top-level `image` values |
+| `shell` | No | top-level `shell` (`/bin/sh`) |
+| `command` | No | image entrypoint; a string run with `shell -c` |
+| `args`, `env`, `envFrom` | No | none |
+| `inheritEnv` | No | `false` |
+| `resources` | No | `jobResources` |
+| `restartPolicy` | No | `OnFailure` |
+| `backoffLimit`, `activeDeadlineSeconds`, `ttlSecondsAfterFinished` | No | Kubernetes defaults |
+| `hook` | No | `PreSync`; `""` disables hook annotations |
+| `hookDeletePolicy` | No | `BeforeHookCreation` |
+| `annotations` | No | none (merged with hook annotations) |
+| `podAnnotations`, `podLabels` | No | chart labels only |
+| `serviceAccount` | No | none |
+| `automountServiceAccountToken` | No | `false`, or `true` when `serviceAccount` is set |
+| `podSecurityContext` | No | top-level `podSecurityContext`, then non-root `621`/`999`, `fsGroup: 999`, `RuntimeDefault` seccomp |
+| `securityContext` | No | top-level `securityContext`, then non-root, read-only root file system, no privilege escalation, drop `ALL` capabilities |
+| `volumeMounts`, `volumes` | No | none |
+| `tmpVolume` | No | `true` (`emptyDir` at `/tmp`) |
+| `nodeSelector`, `tolerations` | No | top-level values |
+
+### Migrating from `extraDeploy`
+A migration previously written as a raw Job in `extraDeploy` can be expressed as:
+
+```yaml
+jobs:
+  - name: event-handler-flyway-migration
+    image:
+      repository: flyway/flyway
+      tag: "10.0"
+    hookDeletePolicy: BeforeHookCreation   # e.g. "BeforeHookCreation,HookSucceeded" to remove the pod after success
+    podSecurityContext:
+      runAsGroup: 621
+      fsGroup: 621
+    volumeMounts:
+      - name: flyway-config
+        mountPath: /etc/secrets
+        readOnly: true
+      - name: flyway-config
+        mountPath: /usr/flyway.yaml
+        subPath: flyway.yaml
+        readOnly: true
+    volumes:
+      - name: flyway-config
+        secret:
+          secretName: event-handler-flyway-config
+```
+
+The `PreSync` hook, `OnFailure` restart policy, disabled token automount, resources, security contexts, and the writable `/tmp` volume all come from the defaults, so they no longer need to be repeated.
+
+> Job values are not passed through `tpl`; set `image.repository` and `image.tag` to literal values.
+
+
 ## Deployment Strategy
 ```yaml
 strategy: RollingUpdate  # or Recreate
@@ -756,7 +842,7 @@ extraDeploy: |
     key: value
 ```
 
-Raw YAML string rendered verbatim alongside the other chart resources. Useful for deploying additional Kubernetes resources that are not supported natively by the chart.
+Raw YAML string rendered verbatim alongside the other chart resources. Useful for deploying additional Kubernetes resources that are not supported natively by the chart. For migration or other one-off Jobs, prefer [`jobs`](#jobs-migrations), which applies secure defaults automatically.
 
 ## ExternalSecret (external-secrets.io/v1)
 Use this to render one or more independent `ExternalSecret` resources.

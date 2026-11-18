@@ -1,0 +1,283 @@
+suite: test jobs
+templates:
+  - job.yaml
+tests:
+  - it: renders a secure PreSync job by default
+    set:
+      jobs:
+        - name: migration
+    asserts:
+      - equal:
+          path: apiVersion
+          value: batch/v1
+      - equal:
+          path: kind
+          value: Job
+      - equal:
+          path: metadata.name
+          value: migration
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: nginx:latest
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: IfNotPresent
+      - equal:
+          path: metadata.annotations
+          value:
+            argocd.argoproj.io/hook: PreSync
+            argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+      - equal:
+          path: spec.template.spec.automountServiceAccountToken
+          value: false
+      - equal:
+          path: spec.template.spec.restartPolicy
+          value: OnFailure
+      - equal:
+          path: spec.template.spec.securityContext.runAsNonRoot
+          value: true
+      - equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 621
+      - equal:
+          path: spec.template.spec.securityContext.runAsGroup
+          value: 999
+      - equal:
+          path: spec.template.spec.securityContext.seccompProfile.type
+          value: RuntimeDefault
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: true
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: false
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.capabilities.drop
+          value:
+            - ALL
+      - equal:
+          path: spec.template.spec.containers[0].resources
+          value:
+            requests:
+              cpu: 25m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      - equal:
+          path: spec.template.spec.volumes[0]
+          value:
+            name: tmp-volume
+            emptyDir: {}
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0]
+          value:
+            name: tmp-volume
+            mountPath: /tmp
+  - it: supports image, command, args, env, and volume overrides
+    set:
+      jobs:
+        - name: migrate-db
+          image:
+            repository: flyway/flyway
+            tag: "10.0"
+            pullPolicy: Always
+          shell: /bin/bash
+          command: flyway migrate
+          args:
+            - -configFiles=/etc/flyway.conf
+          restartPolicy: Never
+          backoffLimit: 0
+          activeDeadlineSeconds: 360
+          ttlSecondsAfterFinished: 0
+          serviceAccount: migrator
+          podAnnotations:
+            migration: enabled
+          podLabels:
+            workload: migration
+          env:
+            - name: MIGRATION
+              value: up
+          volumeMounts:
+            - name: config
+              mountPath: /etc/flyway.conf
+              subPath: flyway.conf
+              readOnly: true
+          volumes:
+            - name: config
+              secret:
+                secretName: flyway-config
+          tmpVolume: false
+          hook: ""
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: flyway/flyway:10.0
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: Always
+      - equal:
+          path: spec.template.spec.automountServiceAccountToken
+          value: true
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: migrator
+      - equal:
+          path: spec.backoffLimit
+          value: 0
+      - equal:
+          path: spec.activeDeadlineSeconds
+          value: 360
+      - equal:
+          path: spec.ttlSecondsAfterFinished
+          value: 0
+      - equal:
+          path: spec.template.spec.restartPolicy
+          value: Never
+      - equal:
+          path: spec.template.metadata.annotations.migration
+          value: enabled
+      - equal:
+          path: spec.template.metadata.labels.workload
+          value: migration
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value:
+            - /bin/bash
+            - -c
+            - flyway migrate
+      - equal:
+          path: spec.template.spec.containers[0].args[0]
+          value: -configFiles=/etc/flyway.conf
+      - equal:
+          path: spec.template.spec.containers[0].env[0].value
+          value: up
+      - equal:
+          path: spec.template.spec.volumes[0].secret.secretName
+          value: flyway-config
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 100m
+      - isNull:
+          path: metadata.annotations
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].mountPath
+          value: /etc/flyway.conf
+      - isNull:
+          path: spec.template.spec.containers[0].volumeMounts[1]
+  - it: allows overriding secure contexts and hook annotations
+    set:
+      jobs:
+        - name: migration
+          hook: Sync
+          hookDeletePolicy: HookSucceeded
+          annotations:
+            example.com/owner: data-team
+          podSecurityContext:
+            fsGroup: 1000
+          securityContext:
+            runAsUser: 1000
+            readOnlyRootFilesystem: false
+    asserts:
+      - equal:
+          path: metadata.annotations
+          value:
+            argocd.argoproj.io/hook: Sync
+            argocd.argoproj.io/hook-delete-policy: HookSucceeded
+            example.com/owner: data-team
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 1000
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 1000
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: false
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: false
+  - it: inherits environment only when requested and inherits scheduling settings
+    set:
+      vars:
+        APP_ENV: test
+      existingSecrets:
+        - name: runtime-secret
+      imagePullSecrets:
+        - registry-secret
+      nodeSelector:
+        kubernetes.io/os: linux
+      tolerations:
+        - key: dedicated
+          operator: Equal
+          value: batch
+          effect: NoSchedule
+      jobs:
+        - name: migration
+          inheritEnv: true
+          envFrom:
+            - secretRef:
+                name: job-secret
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            configMapRef:
+              name: release-name
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            secretRef:
+              name: runtime-secret
+              optional: false
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            secretRef:
+              name: job-secret
+      - equal:
+          path: spec.template.spec.imagePullSecrets[0].name
+          value: registry-secret
+      - equal:
+          path: spec.template.spec.nodeSelector
+          value:
+            kubernetes.io/os: linux
+      - equal:
+          path: spec.template.spec.tolerations[0].key
+          value: dedicated
+  - it: allows empty job scheduling overrides
+    set:
+      tolerations:
+        - key: dedicated
+          operator: Equal
+          value: apps
+          effect: NoSchedule
+      jobs:
+        - name: migration
+          nodeSelector: {}
+          tolerations: []
+    asserts:
+      - isNull:
+          path: spec.template.spec.nodeSelector
+      - isNull:
+          path: spec.template.spec.tolerations
+  - it: fails when a job has no name
+    set:
+      jobs:
+        - image:
+            repository: flyway/flyway
+    asserts:
+      - failedTemplate:
+          errorPattern: "jobs\\[0\\]: name is required"
+  - it: fails on duplicate job names
+    set:
+      jobs:
+        - name: migration
+        - name: migration
+    asserts:
+      - failedTemplate:
+          errorPattern: "duplicate job name migration"

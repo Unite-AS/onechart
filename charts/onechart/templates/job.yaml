@@ -1,0 +1,159 @@
+{{- $root := . -}}
+{{- $jobNames := list -}}
+{{- range $index, $job := .Values.jobs }}
+{{- if not $job.name }}
+{{- fail (printf "jobs[%d]: name is required" $index) }}
+{{- end }}
+{{- $jobName := include "robustName" (toString $job.name) -}}
+{{- if has $jobName $jobNames }}
+{{- fail (printf "jobs: duplicate job name %s" $jobName) }}
+{{- end }}
+{{- $jobNames = append $jobNames $jobName -}}
+{{- $image := $job.image | default dict -}}
+{{- $hook := "PreSync" -}}
+{{- if hasKey $job "hook" }}
+{{- $hook = $job.hook -}}
+{{- end }}
+{{- $annotations := deepCopy ($job.annotations | default dict) -}}
+{{- if $hook }}
+{{- $hookAnnotations := dict "argocd.argoproj.io/hook" $hook "argocd.argoproj.io/hook-delete-policy" ($job.hookDeletePolicy | default "BeforeHookCreation") -}}
+{{- $annotations = mergeOverwrite $annotations $hookAnnotations -}}
+{{- else }}
+{{- $annotations = omit $annotations "argocd.argoproj.io/hook" "argocd.argoproj.io/hook-delete-policy" -}}
+{{- end }}
+{{- $podSecurityContext := dict "fsGroup" 999 "runAsNonRoot" true "runAsUser" 621 "runAsGroup" 999 "seccompProfile" (dict "type" "RuntimeDefault") -}}
+{{- $podSecurityContext = mergeOverwrite $podSecurityContext ($root.Values.podSecurityContext | default dict) -}}
+{{- $podSecurityContext = mergeOverwrite $podSecurityContext ($job.podSecurityContext | default dict) -}}
+{{- $containerSecurityContext := dict "runAsNonRoot" true "runAsUser" 621 "runAsGroup" 999 "readOnlyRootFilesystem" true "allowPrivilegeEscalation" false "capabilities" (dict "drop" (list "ALL")) -}}
+{{- $containerSecurityContext = mergeOverwrite $containerSecurityContext ($root.Values.securityContext | default dict) -}}
+{{- $containerSecurityContext = mergeOverwrite $containerSecurityContext ($job.securityContext | default dict) -}}
+{{- $chartLabels := include "helm-chart.labels" $root | fromYaml -}}
+{{- $podLabels := mergeOverwrite (deepCopy $chartLabels) ($job.podLabels | default dict) -}}
+{{- $envFrom := $job.envFrom | default list -}}
+{{- if $job.inheritEnv -}}
+{{- $inheritedEnv := include "common.envFromRef.tpl" $root | fromYaml -}}
+{{- $envFrom = concat ($inheritedEnv.envFrom | default list) $envFrom -}}
+{{- end -}}
+{{- $tmpVolumeEnabled := true -}}
+{{- if hasKey $job "tmpVolume" -}}
+{{- $tmpVolumeEnabled = $job.tmpVolume -}}
+{{- end -}}
+{{- $needsTmpMount := $tmpVolumeEnabled -}}
+{{- $needsTmpVolume := $tmpVolumeEnabled -}}
+{{- range $job.volumeMounts -}}
+{{- if eq .mountPath "/tmp" -}}
+{{- $needsTmpMount = false -}}
+{{- end -}}
+{{- end -}}
+{{- range $job.volumes -}}
+{{- if eq .name "tmp-volume" -}}
+{{- $needsTmpVolume = false -}}
+{{- end -}}
+{{- end -}}
+{{- $volumeMounts := $job.volumeMounts | default list -}}
+{{- if $needsTmpMount -}}
+{{- $volumeMounts = append $volumeMounts (dict "name" "tmp-volume" "mountPath" "/tmp") -}}
+{{- end -}}
+{{- $volumes := $job.volumes | default list -}}
+{{- if $needsTmpVolume -}}
+{{- $volumes = append $volumes (dict "name" "tmp-volume" "emptyDir" dict) -}}
+{{- end -}}
+{{- $automountToken := not (empty $job.serviceAccount) -}}
+{{- if hasKey $job "automountServiceAccountToken" -}}
+{{- $automountToken = $job.automountServiceAccountToken -}}
+{{- end }}
+{{- $nodeSelector := $root.Values.nodeSelector -}}
+{{- if hasKey $job "nodeSelector" -}}
+{{- $nodeSelector = $job.nodeSelector -}}
+{{- end -}}
+{{- $tolerations := $root.Values.tolerations -}}
+{{- if hasKey $job "tolerations" -}}
+{{- $tolerations = $job.tolerations -}}
+{{- end }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $jobName }}
+  namespace: {{ $root.Release.Namespace }}
+  labels:
+    {{- include "helm-chart.labels" $root | nindent 4 }}
+  {{- with $annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if hasKey $job "backoffLimit" }}
+  backoffLimit: {{ $job.backoffLimit }}
+  {{- end }}
+  {{- if hasKey $job "activeDeadlineSeconds" }}
+  activeDeadlineSeconds: {{ $job.activeDeadlineSeconds }}
+  {{- end }}
+  {{- if hasKey $job "ttlSecondsAfterFinished" }}
+  ttlSecondsAfterFinished: {{ $job.ttlSecondsAfterFinished }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- toYaml $podLabels | nindent 8 }}
+      {{- with $job.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      automountServiceAccountToken: {{ $automountToken }}
+      {{- with $job.serviceAccount }}
+      serviceAccountName: {{ . }}
+      {{- end }}
+      securityContext:
+        {{- toYaml $podSecurityContext | nindent 8 }}
+      restartPolicy: {{ $job.restartPolicy | default "OnFailure" }}
+      {{- with $root.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- range . }}
+        - name: {{ . }}
+        {{- end }}
+      {{- end }}
+      {{- with $nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ $jobName }}
+          image: "{{ $image.repository | default $root.Values.image.repository }}:{{ $image.tag | default $root.Values.image.tag }}"
+          imagePullPolicy: {{ $image.pullPolicy | default $root.Values.image.pullPolicy }}
+          {{- if $job.command }}
+          command:
+            - {{ $job.shell | default $root.Values.shell | quote }}
+            - -c
+            - {{ $job.command | quote }}
+          {{- end }}
+          {{- with $job.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $job.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          securityContext:
+            {{- toYaml $containerSecurityContext | nindent 12 }}
+          resources:
+            {{- toYaml ($job.resources | default $root.Values.jobResources) | nindent 12 }}
+      {{- with $volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

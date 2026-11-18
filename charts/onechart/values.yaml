@@ -101,6 +101,18 @@ sidecarResources:
     cpu: "200m"
     memory: "256Mi"
 
+# Default resources for migration and other one-off jobs.
+jobResources:
+  requests:
+    cpu: "25m"
+    memory: "256Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+
+# Jobs are rendered as batch/v1 Jobs. See docs/onechart-values.md.
+jobs: []
+
 # Extra containers that run next to the main container. See docs/onechart-values.md.
 sidecars: []
 
