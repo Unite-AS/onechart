@@ -281,3 +281,31 @@ tests:
     asserts:
       - failedTemplate:
           errorPattern: "duplicate job name migration"
+  - it: renders image repository and tag through tpl
+    set:
+      flyway:
+        image:
+          repository: registry.example.com/app-flyway
+          tag: 1.2.3-dev-20260101000000
+      jobs:
+        - name: migration
+          image:
+            repository: "{{ .Values.flyway.image.repository }}"
+            tag: "{{ .Values.flyway.image.tag }}"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: registry.example.com/app-flyway:1.2.3-dev-20260101000000
+  - it: fails when a tpl image tag renders empty
+    set:
+      flyway:
+        image:
+          repository: registry.example.com/app-flyway
+      jobs:
+        - name: migration
+          image:
+            repository: "{{ .Values.flyway.image.repository }}"
+            tag: "{{ .Values.flyway.image.tag }}"
+    asserts:
+      - failedTemplate:
+          errorPattern: "jobs\\[0\\] \\(migration\\): image repository and tag must not be empty"

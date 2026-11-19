@@ -10,6 +10,12 @@
 {{- end }}
 {{- $jobNames = append $jobNames $jobName -}}
 {{- $image := $job.image | default dict -}}
+{{- /* repository and tag go through tpl, so a job can read an image that another values file (e.g. the GitOps state repo) sets. */ -}}
+{{- $imageRepository := tpl (toString ($image.repository | default $root.Values.image.repository)) $root -}}
+{{- $imageTag := tpl (toString ($image.tag | default $root.Values.image.tag)) $root -}}
+{{- if or (empty $imageRepository) (empty $imageTag) }}
+{{- fail (printf "jobs[%d] (%s): image repository and tag must not be empty" $index $jobName) }}
+{{- end }}
 {{- $hook := "PreSync" -}}
 {{- if hasKey $job "hook" }}
 {{- $hook = $job.hook -}}
@@ -124,7 +130,7 @@ spec:
       {{- end }}
       containers:
         - name: {{ $jobName }}
-          image: "{{ $image.repository | default $root.Values.image.repository }}:{{ $image.tag | default $root.Values.image.tag }}"
+          image: "{{ $imageRepository }}:{{ $imageTag }}"
           imagePullPolicy: {{ $image.pullPolicy | default $root.Values.image.pullPolicy }}
           {{- if $job.command }}
           command:

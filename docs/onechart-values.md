@@ -651,7 +651,7 @@ Overrides the container's default entrypoint/command. The command is passed to t
 ```yaml
 jobs:
   - name: database-migration
-    image:  # Only specify this block if it is DIFFERENT than the parent workload's image AND static (no build / version changes). Otherwise, platform will set this dynamically on build.
+    image:  # Only specify this block if it is DIFFERENT than the parent workload's image. For a built image, reference a values key with tpl (see "Image set by the GitOps state repo").
       repository: flyway/flyway
       tag: "10.0"
     command: flyway migrate
@@ -681,7 +681,8 @@ Set `inheritEnv: true` to reuse the chart's standard environment sources (`vars`
 | Field | Required | Default |
 |---|---|---|
 | `name` | Yes | Job and container name; must be unique |
-| `image.repository` / `image.tag` / `image.pullPolicy` | No | top-level `image` values |
+| `image.repository` / `image.tag` | No | top-level `image` values; rendered with `tpl` |
+| `image.pullPolicy` | No | top-level `image.pullPolicy` |
 | `shell` | No | top-level `shell` (`/bin/sh`) |
 | `command` | No | image entrypoint; a string run with `shell -c` |
 | `args`, `env`, `envFrom` | No | none |
@@ -701,6 +702,28 @@ Set `inheritEnv: true` to reuse the chart's standard environment sources (`vars`
 | `tmpVolume` | No | `true` (`emptyDir` at `/tmp`) |
 | `nodeSelector`, `tolerations` | No | top-level values |
 
+### Image set by the GitOps state repo
+Helm merges maps from values files, but it replaces lists. If the state repo sets `jobs[0].image.tag`, that list replaces the full `jobs` list from the app repo. To keep the job definition in the app repo, put the image in a map in the state repo and reference it with `tpl`. Only `image.repository` and `image.tag` go through `tpl`.
+
+App repo (`deployments/values.yaml`):
+```yaml
+jobs:
+  - name: database-migration
+    image:
+      repository: "{{ .Values.migration.image.repository }}"
+      tag: "{{ .Values.migration.image.tag }}"
+```
+
+State repo (`<app>/<cluster>/values.yaml`). Argo CD Image Updater writes `migration.image.repository` / `migration.image.tag`:
+```yaml
+migration:
+  image:
+    repository: "registry.example.com/app-migration"
+    tag: "1.2.3"
+```
+
+Rendering fails when the repository or tag renders empty.
+
 ### Migrating from `extraDeploy`
 A migration previously written as a raw Job in `extraDeploy` can be expressed as:
 
@@ -708,12 +731,14 @@ A migration previously written as a raw Job in `extraDeploy` can be expressed as
 jobs:
   - name: event-handler-flyway-migration
     image:
-      repository: flyway/flyway
-      tag: "10.0"
+      repository: "{{ .Values.flyway.image.repository }}"
+      tag: "{{ .Values.flyway.image.tag }}"
     hookDeletePolicy: BeforeHookCreation   # e.g. "BeforeHookCreation,HookSucceeded" to remove the pod after success
     podSecurityContext:
       runAsGroup: 621
       fsGroup: 621
+    securityContext:
+      runAsGroup: 621   # the container default is 999; set it to keep the group of the old pod-level context
     volumeMounts:
       - name: flyway-config
         mountPath: /etc/secrets
@@ -730,7 +755,7 @@ jobs:
 
 The `PreSync` hook, `OnFailure` restart policy, disabled token automount, resources, security contexts, and the writable `/tmp` volume all come from the defaults, so they no longer need to be repeated.
 
-> Job values are not passed through `tpl`; set `image.repository` and `image.tag` to literal values.
+> Only `image.repository` and `image.tag` are passed through `tpl`. All other job values are used as literal values.
 
 
 ## Deployment Strategy
